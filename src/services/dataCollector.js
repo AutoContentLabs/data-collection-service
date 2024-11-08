@@ -21,11 +21,12 @@ async function initializeDbConnection() {
   }
 }
 
-async function collectData(url) {
+async function collectData(service) {
   console.log("Veri toplama işlemi başladı.");
+  var trends;
   try {
     // Google Trends RSS akışından veri çekme
-    const response = await axios.get(url);
+    const response = await axios.get(service.full_url);
     const xmlData = response.data;
 
     // XML verisini JSON formatına dönüştürme
@@ -33,21 +34,29 @@ async function collectData(url) {
     const jsonData = await parser.parseStringPromise(xmlData);
 
     // Yapılandırılmış veriyi ayıklama
-    const trends = jsonData.rss.channel.item.map(item => ({
+    trends = jsonData.rss.channel.item.map(item => ({
       title: item.title,
       approxTraffic: item["ht:approx_traffic"],
       description: item.description,
       link: item.link,
       pubDate: new Date(item.pubDate),
       picture: item["ht:picture"],
-      pictureSource: item["ht:picture_source"]
+      pictureSource: item["ht:picture_source"],
+      service
     }));
 
     // MongoDB'ye veri kaydetme
     await initializeDbConnection(); // Bağlantıyı başlat veya kullan
     await collection.insertMany(trends);
-    console.log(Date.now(), 'Veri başarıyla MongoDB’ye kaydedildi.');
+    console.log(new Date().toISOString(), 'Veri başarıyla MongoDB’ye kaydedildi.');
 
+
+
+  } catch (error) {
+    console.error('Veri toplama hatası:', error);
+  }
+
+  try {
     // Kafka ile sinyal gönderme
     sendKafkaSignal('data-collection-complete', {
       status: 'complete',
@@ -55,9 +64,12 @@ async function collectData(url) {
       recordCount: trends.length,
       timestamp: new Date()
     });
+
+    console.log(new Date().toISOString(), 'sinyal başarıyla gönderildi.');
   } catch (error) {
-    console.error('Veri toplama hatası:', error);
+    console.error('sinyal gönderme hatası:', error);
   }
+
 }
 
 // Uygulama kapanırken bağlantıyı kapatma

@@ -69,18 +69,17 @@ fetchDataFromMySQL((error, results) => {
 
 var timeout = (1000 * 60) * 10;
 
-
 setInterval(() => {
 
 
 
-  services.forEach((item, index) => {
+  services.forEach((service, index) => {
 
-    const { full_url } = item
-    collectData(full_url);
+
+    collectData(service);
   })
 
 
-}, timeout); // Her 10 dakikada bir çalışacak.
+}, timeout); // Her 10 dakika bir yürütülecek.
 
 console.log("data-collection-service:start")

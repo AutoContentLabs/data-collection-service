@@ -2,3 +2,10 @@ services:
   data-collection-service:
     build: .
     env_file: .env
+    networks:
+      - network_shared
+
+networks:
+  network_shared:
+    # docker network create network_shared
+    external: true # Ensure this network exists or create it manually
