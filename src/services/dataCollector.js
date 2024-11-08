@@ -1,13 +1,31 @@
 const axios = require('axios');
 const xml2js = require('xml2js');
-const { mongoClient, mysqlConnection } = require('../config/dbConfig');
+const { mongoClient } = require('../config/dbConfig');
 const { sendKafkaSignal } = require('./kafkaProducer');
 
-async function collectData() {
+// Tek seferlik MongoDB bağlantısı
+let database;
+let collection;
+
+async function initializeDbConnection() {
+  if (!database) {
+    try {
+      await mongoClient.connect();
+      database = mongoClient.db('data_collection');
+      collection = database.collection('trends');
+      console.log("MongoDB bağlantısı başarıyla kuruldu.");
+    } catch (error) {
+      console.error("MongoDB bağlantısı kurulamadı:", error);
+      throw error;
+    }
+  }
+}
+
+async function collectData(url) {
   console.log("Veri toplama işlemi başladı.");
   try {
     // Google Trends RSS akışından veri çekme
-    const response = await axios.get('https://trends.google.com/trending/rss?geo=US');
+    const response = await axios.get(url);
     const xmlData = response.data;
 
     // XML verisini JSON formatına dönüştürme
@@ -17,18 +35,18 @@ async function collectData() {
     // Yapılandırılmış veriyi ayıklama
     const trends = jsonData.rss.channel.item.map(item => ({
       title: item.title,
+      approxTraffic: item["ht:approx_traffic"],
+      description: item.description,
       link: item.link,
       pubDate: new Date(item.pubDate),
-      description: item.description
+      picture: item["ht:picture"],
+      pictureSource: item["ht:picture_source"]
     }));
 
-    // MongoDB'ye bağlantı ve veriyi kaydetme
-    await mongoClient.connect();
-    const database = mongoClient.db('data_collection');
-    const collection = database.collection('trends');
+    // MongoDB'ye veri kaydetme
+    await initializeDbConnection(); // Bağlantıyı başlat veya kullan
     await collection.insertMany(trends);
-
-    console.log(Date.now(),'Veri başarıyla MongoDB’ye kaydedildi.');
+    console.log(Date.now(), 'Veri başarıyla MongoDB’ye kaydedildi.');
 
     // Kafka ile sinyal gönderme
     sendKafkaSignal('data-collection-complete', {
@@ -39,9 +57,15 @@ async function collectData() {
     });
   } catch (error) {
     console.error('Veri toplama hatası:', error);
-  } finally {
-    await mongoClient.close();
   }
 }
+
+// Uygulama kapanırken bağlantıyı kapatma
+process.on('exit', async () => {
+  if (mongoClient) {
+    await mongoClient.close();
+    console.log("MongoDB bağlantısı kapatıldı.");
+  }
+});
 
 module.exports = { collectData };
