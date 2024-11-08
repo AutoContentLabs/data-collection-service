@@ -2,6 +2,10 @@ services:
   data-collection-service:
     build: .
     env_file: .env
+    environment:
+      - MYSQL_HOST=mysql
+      - MONGO_URI=mongodb://mongo_user:mongo_password@mongo:27017/admin
+      - KAFKA_BROKER=kafka:9092
     networks:
       - network_shared
 
