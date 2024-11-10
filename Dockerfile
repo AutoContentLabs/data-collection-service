@@ -1,7 +1,23 @@
 # Dockerfile
-FROM node:20
+
+# Use a lighter Alpine image
+FROM node:20-alpine
+
+# Create the working directory
 WORKDIR /app
+
+# Copy package.json and package-lock.json files
 COPY package*.json ./
-RUN npm install
+
+# Install dependencies (npm ci is more reliable and faster)
+RUN npm ci
+
+# Copy application files
 COPY . .
-CMD ["node", "src/index.js"]
+
+# For security, run the application with the 'app_user' user
+RUN adduser -D app_user
+USER app_user
+
+# Start the application
+CMD ["node", "src/app.js"]

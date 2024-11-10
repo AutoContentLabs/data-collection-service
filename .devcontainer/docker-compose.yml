@@ -1,0 +1,40 @@
+services:
+  app:
+
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      - ../..:/workspaces:cached
+    networks:
+      - network_development
+    entrypoint: [ "/bin/sh", "-c", ".devcontainer/entrypoint.sh" ]
+    depends_on:
+      kafka:
+        condition: service_healthy
+    env_file: .env
+    environment:
+      KAFKA_BROKERS: kafka:19092 # Internal docker communication
+      KAFKA_CLIENT_ID: data-collector
+      KAFKA_GROUP_ID: data-collector-group
+      KAFKA_TOPIC_DEFAULT: data-collection
+
+  kafka:
+    image: apache/kafka-native:latest
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    env_file: .env
+    networks:
+      - network_development
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
+      interval: 1s # It may take some time for the group coordinator to become fully accessible.
+      retries: 5
+      timeout: 5s
+
+networks:
+  network_development:
+    # docker network create network_development
+    driver: bridge
