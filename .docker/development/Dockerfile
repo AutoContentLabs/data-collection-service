@@ -1,21 +1,24 @@
 # Default images
-ARG BASE_IMAGE="ubuntu:22.04"
+ARG BASE_IMAGE="mcr.microsoft.com/devcontainers/javascript-node:22"
 
 # Base stage
 FROM $BASE_IMAGE AS base
 
-# Install base packages
-RUN apt-get update && \
-    apt-get install -y curl && \
-    curl -fsSL https://deb.nodesource.com/setup_22.x | bash - && \
-    apt-get install -y nodejs && \
-    apt-get clean && rm -rf /var/lib/apt/lists/*
-
 # If you are registered, you will remain at the root of the work environment.
 WORKDIR /workspaces/app
 
-# Copy only necessary files
+# Copy package.json and package-lock.json files
+COPY package*.json ./
+
+# Install dependencies (npm ci is more reliable and faster)
+RUN npm ci
+
+# Copy application files
 COPY . .
+
+# For security, run the application with the 'app_user' user
+# RUN adduser -D app_user
+# USER app_user
 
 # It allows the application to start automatically.
 # CMD ["/bin/bash", "-c", ".docker/command.sh"]

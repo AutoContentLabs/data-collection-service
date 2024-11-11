@@ -10,7 +10,7 @@
     "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
     "APP_ENV": "test"
   },
-  "postCreateCommand": "chmod +x .devcontainer/development/postCreateCommand.sh && .devcontainer/development/postCreateCommand.sh",
+  // "postCreateCommand": "chmod +x .devcontainer/development/postCreateCommand.sh && .devcontainer/development/postCreateCommand.sh",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:1": {}
@@ -26,5 +26,6 @@
         "Orta.vscode-jest"
       ]
     }
-  }
+  },
+  "remoteUser": "root"
 }
