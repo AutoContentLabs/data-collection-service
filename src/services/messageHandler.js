@@ -7,7 +7,6 @@ const { sendMessage } = require("../kafka/kafkaClient");
 
 async function handleMessage(message) {
   const { url } = JSON.parse(message.value.toString());
-  console.info(`Data is being pulled:`, url);
 
   const result = await fetchData(url);
 
@@ -20,8 +19,7 @@ async function handleMessage(message) {
   };
 
   const responseTopic = kafkaConfig.topics.DATA_COLLECT_STATUS;
-  console.log("response", responseTopic);
-  console.log("responseMessage", responseMessage);
+
   await sendMessage(responseTopic, responseMessage);
 }
 
