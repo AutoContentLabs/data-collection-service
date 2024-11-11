@@ -1,3 +1,6 @@
+// tests/mock/kafkaClient.test.js
+
+const kafkaConfig = require("../../src/config/kafkaConfig");
 const { Kafka } = require("kafkajs");
 
 // Mock the Kafka producer and consumer
@@ -22,9 +25,9 @@ describe("Kafka Client", () => {
   let consumer;
 
   beforeEach(() => {
-    kafka = new Kafka({ clientId: "test", brokers: ["localhost:9092"] });
+    kafka = new Kafka(kafkaConfig);
     producer = kafka.producer();
-    consumer = kafka.consumer({ groupId: "test-group" });
+    consumer = kafka.consumer({ groupId: kafkaConfig.groupId });
   });
 
   it("should create a producer and connect", async () => {
@@ -40,11 +43,11 @@ describe("Kafka Client", () => {
   it("should send a message to Kafka", async () => {
     const message = { url: "http://example.com" };
     await producer.send({
-      topic: "test-topic",
+      topic: kafkaConfig.topics.DATA_COLLECT_REQUEST,
       messages: [{ value: JSON.stringify(message) }],
     });
     expect(producer.send).toHaveBeenCalledWith({
-      topic: "test-topic",
+      topic: kafkaConfig.topics.DATA_COLLECT_REQUEST,
       messages: [{ value: JSON.stringify(message) }],
     });
   });

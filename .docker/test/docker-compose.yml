@@ -1,0 +1,37 @@
+services:
+  app:
+    build:
+      context: ../..
+      dockerfile: .docker/test/Dockerfile
+    volumes:
+      - /var/run/docker.sock:/var/run/docker-host.sock
+      - ../..:/workspaces/app:cached
+    networks:
+      - network_test
+    depends_on:
+      kafka:
+        condition: service_healthy
+    env_file:
+      - .env.${APP_ENV}
+    environment:
+      APP_ENV: test
+      KAFKA_BROKERS: kafka:19092 # Internal docker communication
+    command: sleep infinity
+
+  kafka:
+    image: apache/kafka-native:latest
+    ports:
+      - '9092:9092'
+      - '9093:9093'
+    env_file: .env.test
+    networks:
+      - network_test
+    healthcheck:
+      test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
+      interval: 1s
+      retries: 5
+      timeout: 5s
+
+networks:
+  network_test:
+    driver: bridge

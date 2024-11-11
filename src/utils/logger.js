@@ -1,11 +1,13 @@
-const winston = require('winston');
+// src/utils/logger.js
+
+const winston = require("winston");
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: "info",
   format: winston.format.simple(),
   transports: [
     new winston.transports.Console(),
-    new winston.transports.File({ filename: 'logs/app.log' }),
+    new winston.transports.File({ filename: "logs/app.log" }),
   ],
 });
 

@@ -1,3 +1,7 @@
+// tests/mock/messageHandler.test.js
+
+const kafkaConfig = require("../../src/config/kafkaConfig");
+
 const handleMessage = require("../../src/services/messageHandler");
 const fetchData = require("../../src/services/fetchData");
 const { sendMessage } = require("../../src/kafka/kafkaClient");
@@ -14,7 +18,7 @@ describe("Message Handler", () => {
     await handleMessage(message);
 
     expect(sendMessage).toHaveBeenCalledWith(
-      "data_collected_topic",
+      kafkaConfig.topics.DATA_COLLECT_STATUS,
       expect.objectContaining({
         status: "success",
         url: "http://example.com",
@@ -31,7 +35,7 @@ describe("Message Handler", () => {
     await handleMessage(message);
 
     expect(sendMessage).toHaveBeenCalledWith(
-      "data_collection_error_topic",
+      kafkaConfig.topics.DATA_COLLECT_STATUS,
       expect.objectContaining({
         status: "failure",
         url: "http://example.com",

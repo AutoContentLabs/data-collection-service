@@ -4,16 +4,16 @@
   "description": "Data Collection Service",
   "main": "src/app.js",
   "scripts": {
-    "start": "node src/app.js",
-    "dev": "node src/app.js",
-    "test": "jest"
+    "start": "dotenvx run -f .docker/production/.env.production -- node src/app.js",
+    "dev": "dotenvx run -f .docker/development/.env.development -- node src/app.js",
+    "test": "dotenvx run -f .docker/test/.env.test -- jest"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=22"
   },
   "dependencies": {
+    "@dotenvx/dotenvx": "^1.22.0",
     "axios": "^1.7.7",
-    "dotenv": "^16.4.5",
     "kafkajs": "^2.2.4",
     "uuid": "^11.0.2",
     "winston": "^3.17.0"

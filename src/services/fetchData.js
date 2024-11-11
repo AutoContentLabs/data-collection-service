@@ -1,4 +1,6 @@
-const axios = require('axios');
+// src/services/fetchData.js
+
+const axios = require("axios");
 
 async function fetchData(url) {
   try {

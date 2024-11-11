@@ -1,5 +1,9 @@
-const fetchData = require('./fetchData');
-const { sendMessage } = require('../kafka/kafkaClient');
+// src/services/messageHandler.js
+
+const kafkaConfig = require("../../src/config/kafkaConfig");
+
+const fetchData = require("./fetchData");
+const { sendMessage } = require("../kafka/kafkaClient");
 
 async function handleMessage(message) {
   const { url } = JSON.parse(message.value.toString());
@@ -8,14 +12,16 @@ async function handleMessage(message) {
   const result = await fetchData(url);
 
   const responseMessage = {
-    status: result.success ? 'success' : 'failure',
+    status: result.success ? "success" : "failure",
     url: url,
     data: result.success ? result.data : null,
     error: result.success ? null : result.error,
     timestamp: new Date().toISOString(),
   };
 
-  const responseTopic = result.success ? 'data_collected_topic' : 'data_collection_error_topic';
+  const responseTopic = kafkaConfig.topics.DATA_COLLECT_STATUS;
+  console.log("response", responseTopic);
+  console.log("responseMessage", responseMessage);
   await sendMessage(responseTopic, responseMessage);
 }
 

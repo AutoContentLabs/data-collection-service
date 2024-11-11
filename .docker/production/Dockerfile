@@ -1,7 +1,7 @@
 # Dockerfile
 
 # Use a lighter Alpine image
-FROM node:20-alpine
+FROM node:22-alpine
 
 # Create the working directory
 WORKDIR /app
@@ -20,4 +20,4 @@ RUN adduser -D app_user
 USER app_user
 
 # Start the application
-CMD ["node", "src/app.js"]
+CMD ["npm", "start"]

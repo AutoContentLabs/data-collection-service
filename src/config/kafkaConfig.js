@@ -1,14 +1,13 @@
 // src/config/kafkaConfig.js
-require("dotenv").config();
 
-const KAFKA_BROKERS = process.env.KAFKA_BROKERS
-const KAFKA_CLIENT_ID = process.env.KAFKA_CLIENT_ID
-const KAFKA_GROUP_ID = process.env.KAFKA_GROUP_ID
-const KAFKA_TOPIC_DEFAULT = process.env.KAFKA_TOPIC_DEFAULT
+const config = require("./config");
 
-module.exports = {
-  brokers: [KAFKA_BROKERS],
-  clientId: KAFKA_CLIENT_ID,
-  groupId: KAFKA_GROUP_ID,
-  KAFKA_TOPIC_DEFAULT: KAFKA_TOPIC_DEFAULT
+const kafkaConfig = {
+  brokers: config.KAFKA_BROKERS,
+  clientId: config.KAFKA_CLIENT_ID,
+  groupId: config.KAFKA_GROUP_ID,
+  logLevel: config.KAFKA_LOG_LEVEL,
+  topics: config.KAFKA_TOPICS,
 };
+
+module.exports = kafkaConfig;

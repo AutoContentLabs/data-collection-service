@@ -1,2 +1,0 @@
-echo 'Ready'
-sleep infinity

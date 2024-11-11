@@ -1,19 +1,14 @@
-const { Kafka, logLevel } = require('kafkajs');
+// tests/integration/kafkaProducer.test.js
 
-describe('Kafka Producer', () => {
+const kafkaConfig = require("../../src/config/kafkaConfig");
+const { Kafka } = require("kafkajs");
+
+describe("Kafka Producer", () => {
   let kafka, producer;
-
-  const KAFKA_BROKERS = process.env.KAFKA_BROKERS;
-  const clientId = `producer-development-${process.env.KAFKA_CLIENT_ID}`;
-  const groupId = `group-development-${process.env.KAFKA_GROUP_ID}`;
-  const topic = `topic-development-${process.env.KAFKA_TOPIC_DEFAULT}`;
+  const topic = kafkaConfig.topics.DATA_COLLECT_REQUEST;
 
   beforeAll(async () => {
-    kafka = new Kafka({
-      brokers: [KAFKA_BROKERS],
-      clientId: clientId,
-      logLevel: logLevel.NOTHING
-    });
+    kafka = new Kafka(kafkaConfig);
     producer = kafka.producer();
     await producer.connect();
   });
@@ -22,15 +17,14 @@ describe('Kafka Producer', () => {
     await producer.disconnect();
   });
 
-  it('should send a message to Kafka', async () => {
-    const message = { url: 'http://example.com' };
+  it("should send a message to Kafka", async () => {
+    const message = { url: "http://example.com" };
 
     await producer.send({
-      topic: topic,
-      messages: [{ value: JSON.stringify(message) }]
+      topic,
+      messages: [{ value: JSON.stringify(message) }],
     });
 
-    // Mesaj başarıyla gönderildiği için burada herhangi bir hata fırlatılması, testin başarısız olduğu anlamına gelir.
-    expect(true).toBe(true); // Kafka'ya mesaj gönderildiği sürece test başarılı sayılır.
+    expect(true).toBe(true);
   });
 });

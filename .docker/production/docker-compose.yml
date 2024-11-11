@@ -1,12 +1,13 @@
 services:
   data-collection-service:
-    build: ./
-    env_file: .env
+    build:
+      context: ../..
+      dockerfile: .docker/production/Dockerfile
+    env_file:
+      - .env.${APP_ENV}
     environment:
+      APP_ENV: production
       KAFKA_BROKERS: kafka:19092 # Internal docker communication
-      KAFKA_CLIENT_ID: data-collector
-      KAFKA_GROUP_ID: data-collector-group
-      KAFKA_TOPIC_DEFAULT: data-collection
     networks:
       - network_shared
     volumes:

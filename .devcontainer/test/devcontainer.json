@@ -1,11 +1,16 @@
 {
-  "name": "Docker from Docker Compose",
-  "dockerComposeFile": "docker-compose.yml",
+  "name": "Test Environment",
+  "dockerComposeFile": [
+    "../../.docker/test/docker-compose.yml"
+  ],
   "service": "app",
-  "workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
+  "workspaceFolder": "/workspaces/app",
   "remoteEnv": {
-    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
+    "LOCAL_WORKSPACE_FOLDER_BASE_NAME": "${localWorkspaceFolderBasename}",
+    "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
+    "APP_ENV": "test"
   },
+  "postCreateCommand": "chmod +x .devcontainer/development/postCreateCommand.sh && .devcontainer/development/postCreateCommand.sh",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:1": {}
