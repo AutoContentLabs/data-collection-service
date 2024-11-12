@@ -1,13 +1,17 @@
 #!/bin/sh
 
-# It is used to perform configuration or additional initialization operations after the container has been created.
+# This script is used to perform configuration or additional initialization operations after the container is created.
 
-# pre create launch commands.
-echo $LOCAL_WORKSPACE_FOLDER_BASE_NAME $LOCAL_WORKSPACE_FOLDER
+# Print the local workspace folder paths and environment variables
+echo "LOCAL_WORKSPACE_FOLDER_BASE_NAME: $LOCAL_WORKSPACE_FOLDER_BASE_NAME"
+echo "LOCAL_WORKSPACE_FOLDER: $LOCAL_WORKSPACE_FOLDER"
 
-# environment
-echo APP_ENV=$APP_ENV
+# Print environment variable
+echo "APP_ENV: $APP_ENV"
 
+# Install npm dependencies
+echo "Running npm ci..."
 npm ci
 
-# /bin/shA
+# Print completion message
+echo "Post-create commands completed."

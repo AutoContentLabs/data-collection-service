@@ -17,8 +17,15 @@ RUN npm ci
 COPY . .
 
 # For security, run the application with the 'app_user' user
-# RUN adduser -D app_user
-# USER app_user
+RUN if [ -f /etc/alpine-release ]; then \
+      adduser -D app_user; \
+    elif [ -f /etc/debian_version ]; then \
+      adduser --disabled-password --gecos "" app_user; \
+    else \
+      useradd -m -s /bin/bash app_user; \
+    fi
+    
+USER app_user
 
-# It allows the application to start automatically.
-# CMD ["/bin/bash", "-c", ".docker/command.sh"]
+# Expose the port your application runs on
+EXPOSE 3000

@@ -10,7 +10,8 @@
     "LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}",
     "APP_ENV": "test"
   },
-  // "postCreateCommand": "chmod +x .devcontainer/development/postCreateCommand.sh && .devcontainer/development/postCreateCommand.sh",
+  // There may be cases where the file exists but is not executed or the path is not fully resolved.
+  "postCreateCommand": "ls -la ./.devcontainer/development/postCreateCommand.sh && chmod +x ./.devcontainer/development/postCreateCommand.sh && ./.devcontainer/development/postCreateCommand.sh",
   "features": {
     "ghcr.io/devcontainers/features/docker-outside-of-docker:1": {},
     "ghcr.io/devcontainers/features/node:1": {}

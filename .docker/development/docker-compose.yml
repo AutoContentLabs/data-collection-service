@@ -1,7 +1,7 @@
 services:
   app:
     build:
-      context: ../..
+      context: ../../
       dockerfile: .docker/development/Dockerfile
     volumes:
       - /var/run/docker.sock:/var/run/docker-host.sock
@@ -15,22 +15,26 @@ services:
       - .env.${APP_ENV}
     environment:
       APP_ENV: development
-      KAFKA_BROKERS: kafka:19092 # Internal docker communication
-    command: sleep infinity
+      KAFKA_BROKERS: kafka:19092 # Kafka broker connection string for internal docker
+    command: "sleep infinity"
 
   kafka:
-    image: apache/kafka-native:latest
+    image: apache/kafka-native:3.9.0
     ports:
       - '9092:9092'
       - '9093:9093'
-    env_file: .env.development
+    env_file:
+      - .env.${APP_ENV}
     networks:
       - network_development
     healthcheck:
       test: [ "CMD", "sh", "-c", "nc -z localhost 9092" ]
-      interval: 1s
-      retries: 5
+      interval: 30s
       timeout: 5s
+      retries: 3
+    # environment:
+    #   # Kafka environment variables override
+    #   # e.g., KAFKA_ADVERTISED_LISTENER, KAFKA_LISTENER_PORT, etc.
 
 networks:
   network_development:

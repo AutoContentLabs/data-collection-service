@@ -1,17 +1,38 @@
 services:
+
   data-collection-service:
     build:
-      context: ../..
+      context: ../../
       dockerfile: .docker/production/Dockerfile
     env_file:
       - .env.${APP_ENV}
     environment:
       APP_ENV: production
-      KAFKA_BROKERS: kafka:19092 # Internal docker communication
+      KAFKA_BROKERS: kafka:19092 # Kafka broker connection string for internal docker
     networks:
       - network_shared
     volumes:
-      - ./logs:/app/logs
+      - logs:/workspaces/app/logs
+    restart: always
+    command: "npm start"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    # expose:
+    #   - "3000" # only internal
+    # healthcheck:
+    #   test: [ "CMD", "curl", "-f", "http://localhost:3000" ]
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+    # deploy:
+    #   replicas: 3
+
+volumes:
+  logs:
+
 
 networks:
   network_shared:
