@@ -1,5 +1,5 @@
 const logger = require("./utils/logger");
-const { sendMessage, logSender, topics, sendDataCollectResponse, sendDataCollectStatus, sendDataCollectError } = require('@auto-content-labs/messaging');
+const { logSender, dataCollectResponseSender, dataCollectStatusSender, dataCollectErrorSender } = require('@auto-content-labs/messaging');
 const { fetchData } = require("@auto-content-labs/fetcher")
 
 /**
@@ -43,35 +43,35 @@ async function onMessage({ topic, partition, message }) {
   // Check message format
   if (value.taskId && value.source && value.parameters && value.parameters.url) {
     const url = value.parameters.url;
-    logSender(value.taskId, 'info', `Data collection started for URL: ${url}`);
+    logSender.sendLog(value.taskId, 'info', `Data collection started for URL: ${url}`);
 
     try {
       const data = await fetchDataWithTimeout(url, 5000); // Timeout set to 5 seconds
 
       if (data) {
         // Send data collect response and log
-        sendDataCollectResponse(value.taskId, data);
-        logSender(value.taskId, 'info', `Data collection completed successfully.`);
+        dataCollectResponseSender.sendDataCollectResponse(value.taskId, data);
+        logSender.sendLog(value.taskId, 'info', `Data collection completed successfully.`);
 
         // Update status
-        sendDataCollectStatus(value.taskId, 'completed', 'Data collection completed.');
+        dataCollectStatusSender.sendDataCollectStatus(value.taskId, 'completed', 'Data collection completed.');
 
       } else {
         throw new Error('Data fetch failed or returned empty data');
       }
     } catch (error) {
       // Critical error log with alert and send error
-      logSender(value.taskId, 'error', `Error occurred: ${error.message}`);
+      logSender.sendLog(value.taskId, 'error', `Error occurred: ${error.message}`);
       logger.error(`Error during data collection for taskId ${value.taskId}: ${error.message}`);
 
-      sendDataCollectError(value.taskId, 'DATA_FETCH_ERROR', `Failed to fetch data from URL: ${url}. Error: ${error.message}`);
-      sendDataCollectStatus(value.taskId, 'failed', 'Data collection failed.');
+      dataCollectErrorSender.sendDataCollectError(value.taskId, 'DATA_FETCH_ERROR', `Failed to fetch data from URL: ${url}. Error: ${error.message}`);
+      dataCollectStatusSender.sendDataCollectStatus(value.taskId, 'failed', 'Data collection failed.');
 
       // Optional retry logic can be added here if necessary
     }
   } else {
     logger.error("Invalid message format, missing necessary fields: taskId, source, or parameters.");
-    logSender(value.taskId || 'unknown', 'error', `Invalid message format, missing necessary fields.`);
+    logSender.sendLog(value.taskId || 'unknown', 'error', `Invalid message format, missing necessary fields.`);
   }
 }
 
