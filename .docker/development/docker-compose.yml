@@ -13,9 +13,6 @@ services:
         condition: service_healthy
     env_file:
       - .env.${APP_ENV}
-    environment:
-      APP_ENV: development
-      KAFKA_BROKERS: kafka:19092 # Kafka broker connection string for internal docker
     command: "sleep infinity"
 
   kafka:

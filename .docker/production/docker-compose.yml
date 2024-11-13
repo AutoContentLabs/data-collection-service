@@ -6,9 +6,6 @@ services:
       dockerfile: .docker/production/Dockerfile
     env_file:
       - .env.${APP_ENV}
-    environment:
-      APP_ENV: production
-      KAFKA_BROKERS: kafka:19092 # Kafka broker connection string for internal docker
     networks:
       - network_shared
     volumes:
