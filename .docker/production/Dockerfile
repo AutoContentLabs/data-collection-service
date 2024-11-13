@@ -11,7 +11,7 @@ RUN apk add --no-cache curl bash
 WORKDIR /workspaces/app
 
 # Copy package.json and package-lock.json files
-COPY package*.json ./
+COPY package*.json ./ 
 
 # Check if Verdaccio is running, otherwise use npmjs registry
 RUN if curl -s http://localhost:4873/ > /dev/null; then \
@@ -28,9 +28,6 @@ RUN npm ci --omit=dev
 # Copy application files
 COPY . .
 
-# Create the logs directory and ensure the app_user has the correct permissions
-RUN mkdir -p /workspaces/app/logs && chmod 777 /workspaces/app/logs
-
 # Create a non-root user for security reasons and use it
 RUN if [ -f /etc/alpine-release ]; then \
   adduser -D app_user; \
@@ -42,6 +39,9 @@ RUN if [ -f /etc/alpine-release ]; then \
 
 # Ensure app_user has ownership over the application files
 RUN chown -R app_user:app_user /workspaces/app
+
+# Create the logs directory and ensure the app_user has the correct permissions
+RUN mkdir -p /workspaces/app/logs && chmod 777 /workspaces/app/logs
 
 USER app_user
 

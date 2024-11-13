@@ -1,22 +1,22 @@
-# Use Microsoft's official development container image for Node.js
+# Default images
 ARG BASE_IMAGE="mcr.microsoft.com/devcontainers/javascript-node:22"
 
-# Base stage from the image
+# Base stage
 FROM $BASE_IMAGE AS base
 
-# Set the working directory inside the container
+# Set the working directory
 WORKDIR /workspaces/app
 
-# Copy package.json and package-lock.json files to install dependencies
+# Copy package.json and package-lock.json files
 COPY package*.json ./
 
-# Install dependencies using npm ci (more reliable and faster)
+# Install dependencies (npm ci is more reliable and faster)
 RUN npm ci
 
-# Copy all application files into the container
+# Copy application files
 COPY . .
 
-# Create a non-root user to run the application for security
+# For security, run the application with the 'app_user' user
 RUN if [ -f /etc/alpine-release ]; then \
   adduser -D app_user; \
   elif [ -f /etc/debian_version ]; then \
@@ -25,7 +25,10 @@ RUN if [ -f /etc/alpine-release ]; then \
   useradd -m -s /bin/bash app_user; \
   fi
 
+# Set permissions for the entire app directory to 'app_user'
+RUN chown -R app_user:app_user /workspaces/app
+
 USER app_user
 
-# Expose the port (optional, but could be useful for integration testing)
+# Expose the port your application runs on
 EXPOSE 3000
