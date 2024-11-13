@@ -1,7 +1,6 @@
 const logger = require("./utils/logger");
 const { sendMessage, sendLog, topics, sendDataCollectResponse, sendDataCollectStatus, sendDataCollectError } = require('@auto-content-labs/messaging');
-const { fetchData } = require("@auto-content-labs/fetcher");
-
+const { fetchData } = require("@auto-content-labs/fetcher")
 /**
  * Incoming message processing function
  * 

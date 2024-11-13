@@ -1,22 +1,29 @@
 // src/utils/logger.js
 const winston = require('winston');
 const path = require('path');
+const fs = require('fs').promises;
 
 const logFilePath = path.resolve('logs/messaging.log');
 
-const fs = require('fs');
-const logDirectory = path.dirname(logFilePath);
+const ensureLogDirectoryExists = async (dir) => {
+  try {
+    await fs.mkdir(dir, { recursive: true });
+  } catch (error) {
+    console.error(`Log directory creation failed: ${error.message}`);
+  }
+};
+ensureLogDirectoryExists(path.dirname(logFilePath));
 
-if (!fs.existsSync(logDirectory)) {
-  fs.mkdirSync(logDirectory, { recursive: true });
-}
 
 const logger = winston.createLogger({
-  level: 'info',
+  level: process.env.LOG_LEVEL || 'info',
   format: winston.format.combine(
     winston.format.timestamp(),
-    winston.format.printf(({ timestamp, level, message }) => {
-      return `${timestamp} [${level}]: ${message}`;
+    winston.format.errors({ stack: true }),
+    winston.format.printf(({ timestamp, level, message, stack }) => {
+      return stack
+        ? `${timestamp} [${level}]: ${message} - ${stack}`
+        : `${timestamp} [${level}]: ${message}`;
     })
   ),
   transports: [
@@ -32,16 +39,10 @@ const logger = winston.createLogger({
       filename: logFilePath,
       maxsize: 5242880,
       maxFiles: 5,
+      format: winston.format.json(),
     }),
   ],
 });
 
-if (process.env.NODE_ENV === 'production') {
-  logger.add(new winston.transports.Console({
-    format: winston.format.combine(
-      winston.format.colorize(),
-      winston.format.simple()
-    )
-  }));
-}
+
 module.exports = logger;
