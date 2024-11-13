@@ -15,6 +15,7 @@
     "@auto-content-labs/fetcher": "github:AutoContentLabs/fetcher",
     "@auto-content-labs/messaging": "github:AutoContentLabs/messaging",
     "@dotenvx/dotenvx": "^1.22.0",
+    "axios": "^1.7.7",
     "winston": "^3.17.0"
   },
   "author": "Quenteon",

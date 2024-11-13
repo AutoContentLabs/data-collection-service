@@ -1,6 +1,6 @@
+const axios = require('axios');
 const logger = require("./utils/logger");
 const { logSender, dataCollectResponseSender, dataCollectStatusSender, dataCollectErrorSender } = require('@auto-content-labs/messaging');
-const { fetchData } = require("@auto-content-labs/fetcher")
 
 /**
  * Timeout wrapper for fetchData to limit response time
@@ -8,10 +8,24 @@ const { fetchData } = require("@auto-content-labs/fetcher")
  * @param {number} timeout - Timeout in milliseconds
  */
 async function fetchDataWithTimeout(url, timeout = 5000) {
-  return Promise.race([
-    fetchData(url),
-    new Promise((_, reject) => setTimeout(() => reject(new Error('Fetch timeout exceeded')), timeout))
-  ]);
+  const source = axios.CancelToken.source();
+
+  const timeoutPromise = new Promise((_, reject) =>
+    setTimeout(() => {
+      source.cancel('Fetch timeout exceeded');
+      reject(new Error('Fetch timeout exceeded'));
+    }, timeout)
+  );
+
+  try {
+    const response = await Promise.race([
+      axios.get(url, { cancelToken: source.token }),
+      timeoutPromise
+    ]);
+    return response.data;
+  } catch (error) {
+    throw error; // Error handling will be handled in onMessage
+  }
 }
 
 /**
@@ -42,7 +56,13 @@ async function onMessage({ topic, partition, message }) {
 
   // Check message format
   if (value.taskId && value.source && value.parameters && value.parameters.url) {
-    const url = value.parameters.url;
+    let url = value.parameters.url;
+
+    // Check if the URL starts with 'http://' or 'https://'. If not, add 'http://'
+    if (!url.startsWith('http://') && !url.startsWith('https://')) {
+      url = `http://${url}`;  // Şema eksikse 'http://' ekle
+    }
+
     logSender.sendLog(value.taskId, 'info', `Data collection started for URL: ${url}`);
 
     try {
