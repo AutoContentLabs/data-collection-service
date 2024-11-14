@@ -1,32 +1,6 @@
-const axios = require('axios');
 const logger = require("./utils/logger");
 const { logSender, dataCollectResponseSender, dataCollectStatusSender, dataCollectErrorSender } = require('@auto-content-labs/messaging');
-
-/**
- * Timeout wrapper for fetchData to limit response time
- * @param {string} url - URL to fetch data from
- * @param {number} timeout - Timeout in milliseconds
- */
-async function fetchDataWithTimeout(url, timeout = 5000) {
-  const source = axios.CancelToken.source();
-
-  const timeoutPromise = new Promise((_, reject) =>
-    setTimeout(() => {
-      source.cancel('Fetch timeout exceeded');
-      reject(new Error('Fetch timeout exceeded'));
-    }, timeout)
-  );
-
-  try {
-    const response = await Promise.race([
-      axios.get(url, { cancelToken: source.token }),
-      timeoutPromise
-    ]);
-    return response.data;
-  } catch (error) {
-    throw error; // Error handling will be handled in onMessage
-  }
-}
+const { fetcher, formatURL } = require("@auto-content-labs/fetcher");
 
 /**
  * Incoming message processing function
@@ -58,15 +32,14 @@ async function onMessage({ topic, partition, message }) {
   if (value.taskId && value.source && value.parameters && value.parameters.url) {
     let url = value.parameters.url;
 
-    // Check if the URL starts with 'http://' or 'https://'. If not, add 'http://'
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      url = `http://${url}`;  // Şema eksikse 'http://' ekle
-    }
+    // Format the URL before making a request using the fetcher utility
+    url = formatURL(url); // Ensures the URL has a proper schema (https://)
 
     logSender.sendLog(value.taskId, 'info', `Data collection started for URL: ${url}`);
 
     try {
-      const data = await fetchDataWithTimeout(url, 5000); // Timeout set to 5 seconds
+      // Fetch data using the fetcher utility with timeout and retry logic
+      const data = await fetcher(url);
 
       if (data) {
         // Send data collect response and log
@@ -75,7 +48,6 @@ async function onMessage({ topic, partition, message }) {
 
         // Update status
         dataCollectStatusSender.sendDataCollectStatus(value.taskId, 'completed', 'Data collection completed.');
-
       } else {
         throw new Error('Data fetch failed or returned empty data');
       }
