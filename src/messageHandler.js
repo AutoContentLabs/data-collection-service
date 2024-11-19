@@ -1,27 +1,15 @@
 const logger = require("./utils/logger");
-const { logSender, dataCollectResponseSender, dataCollectStatusSender, dataCollectErrorSender } = require('@auto-content-labs/messaging');
+const { sendLogRequest, sendDataCollectResponseRequest, sendDataCollectStatusRequest, sendDataCollectErrorRequest } = require('@auto-content-labs/messaging');
 const { fetcher, formatURL } = require("@auto-content-labs/fetcher");
+const cheerio = require("cheerio"); // HTML ayrıştırma için
+const xml2js = require("xml2js"); // XML ayrıştırma için
 
 /**
  * Incoming message processing function
  * 
  * @param {Object} message - Incoming message
  */
-async function onMessage({ topic, partition, message }) {
-  const key = message.key ? message.key.toString() : null;
-  const timestamp = message.timestamp;
-
-  // Parsing message value only if exists to avoid unnecessary operations
-  let value;
-  try {
-    value = message.value ? JSON.parse(message.value.toString()) : null;
-  } catch (error) {
-    logger.error("Failed to parse message value as JSON.", error);
-    return;
-  }
-
-  // send log
-  logger.info(`Received: [${topic}] [${partition}] [${key}] [${timestamp}]`);
+async function onMessage({ key, value, topic, timestamp, headers }) {
 
   if (!value) {
     logger.error("No value found in the message");
@@ -29,41 +17,111 @@ async function onMessage({ topic, partition, message }) {
   }
 
   // Check message format
-  if (value.taskId && value.source && value.parameters && value.parameters.url) {
-    let url = value.parameters.url;
+  if (value.params && value.params.url) {
+    let url = value.params.url;
 
     // Format the URL before making a request using the fetcher utility
     url = formatURL(url); // Ensures the URL has a proper schema (https://)
 
-    logSender.sendLog(value.taskId, 'info', `Data collection started for URL: ${url}`);
+    await sendLogRequest({ logId: new Date().toString(), message: `Data processing start ${url}`, level: "info", timestamp: new Date().toISOString() });
 
     try {
       // Fetch data using the fetcher utility with timeout and retry logic
       const data = await fetcher(url);
 
       if (data) {
-        // Send data collect response and log
-        dataCollectResponseSender.sendDataCollectResponse(value.taskId, data);
-        logSender.sendLog(value.taskId, 'info', `Data collection completed successfully.`);
+        console.log("data type", typeof data);
 
-        // Update status
-        dataCollectStatusSender.sendDataCollectStatus(value.taskId, 'completed', 'Data collection completed.');
+        let resultObject = null;
+
+        if (typeof data === "string") {
+          try {
+            // JSON formatında mı?
+            const json = JSON.parse(data);
+            console.log("JSON formatında veri", json);
+            resultObject = json;
+          } catch (e) {
+            if (data.startsWith("<")) {
+              console.log("HTML veya XML formatında veri");
+
+              if (data.startsWith("<html")) {
+                // HTML ayrıştırma
+                const $ = cheerio.load(data);
+                resultObject = {
+                  title: $("title").text(),
+                  headings: $("h1").map((_, el) => $(el).text()).get(),
+                  paragraphs: $("p").map((_, el) => $(el).text()).get()
+                };
+              } else {
+                // XML ayrıştırma
+                const parsedXml = await xml2js.parseStringPromise(data);
+                resultObject = parsedXml;
+              }
+            } else {
+              console.log("Düz metin formatında veri");
+              resultObject = { text: data };
+            }
+          }
+        } else {
+          console.error("Beklenmeyen veri formatı:", typeof data);
+        }
+
+        if (resultObject) {
+          await sendDataCollectResponseRequest({
+            id: new Date().toISOString(),
+            data: resultObject, // Veriyi nesne formatında gönderiyoruz
+            timestamp: new Date().toISOString()
+          });
+
+          await sendDataCollectStatusRequest({
+            id: new Date().toISOString(),
+            status: "completed",
+            message: "Data collection is completed.",
+            timestamp: new Date().toISOString()
+          });
+        } else {
+          console.log("Veri nesneye dönüştürülemedi:", data);
+        }
       } else {
-        throw new Error('Data fetch failed or returned empty data');
+
+        await sendDataCollectErrorRequest({
+          id: new Date().toISOString(),
+          errorCode: "DATA_FETCH_EMPTY",
+          errorMessage: `No data fetched from ${url}`,
+          timestamp: new Date().toISOString()
+        });
       }
     } catch (error) {
-      // Critical error log with alert and send error
-      logSender.sendLog(value.taskId, 'error', `Error occurred: ${error.message}`);
-      logger.error(`Error during data collection for taskId ${value.taskId}: ${error.message}`);
 
-      dataCollectErrorSender.sendDataCollectError(value.taskId, 'DATA_FETCH_ERROR', `Failed to fetch data from URL: ${url}. Error: ${error.message}`);
-      dataCollectStatusSender.sendDataCollectStatus(value.taskId, 'failed', 'Data collection failed.');
+      await sendLogRequest({
+        logId: new Date().toISOString(),
+        message: `Error fetching data from ${url}: ${error.message}`,
+        level: "error",
+        timestamp: new Date().toISOString()
+      });
 
-      // Optional retry logic can be added here if necessary
+      await sendDataCollectErrorRequest({
+        id: new Date().toISOString(),
+        errorCode: "DATA_FETCH_ERROR",
+        errorMessage: `${error.message} ${url}`,
+        timestamp: new Date().toISOString()
+      });
+
+      await sendDataCollectStatusRequest({
+        id: new Date().toISOString(),
+        status: "failed",
+        message: "Data collection is failed.",
+        timestamp: new Date().toISOString()
+      });
     }
   } else {
-    logger.error("Invalid message format, missing necessary fields: taskId, source, or parameters.");
-    logSender.sendLog(value.taskId || 'unknown', 'error', `Invalid message format, missing necessary fields.`);
+
+    await sendLogRequest({
+      logId: new Date().toISOString(),
+      message: "Invalid message format",
+      level: "error",
+      timestamp: new Date().toISOString()
+    });
   }
 }
 

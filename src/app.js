@@ -4,7 +4,7 @@
  */
 
 const logger = require("./utils/logger");
-const { startListener, topics } = require('@auto-content-labs/messaging');
+const { topics, listenMessage } = require('@auto-content-labs/messaging');
 const { onMessage } = require("./messageHandler");
 
 async function start() {
@@ -17,7 +17,7 @@ async function start() {
     }
 
     // Start the listener for data collection requests
-    startListener(topics.dataCollectRequest, onMessage);
+    listenMessage(topics.dataCollectRequest, onMessage);
     logger.info(`Listener started on topic: ${topics.dataCollectRequest}`);
 
   } catch (error) {

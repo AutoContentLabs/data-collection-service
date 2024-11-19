@@ -15,7 +15,9 @@
     "@auto-content-labs/fetcher": "github:AutoContentLabs/fetcher",
     "@auto-content-labs/messaging": "github:AutoContentLabs/messaging",
     "@dotenvx/dotenvx": "^1.22.0",
-    "winston": "^3.17.0"
+    "cheerio": "^1.0.0",
+    "winston": "^3.17.0",
+    "xml2js": "^0.6.2"
   },
   "author": "Quenteon",
   "license": "MIT",
