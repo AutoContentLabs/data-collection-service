@@ -31,12 +31,12 @@ async function eventDataCollectRequest({ value } = processedData) {
   if (value.params && value.params.url) {
     const url = value.params.url;
 
-    await sendLogRequest({
-      logId: getCurrentTimestamp(),
-      message: `Data processing start: ${url}`,
-      level: "info",
-      timestamp: getCurrentTimestamp(),
-    });
+    // await sendLogRequest({
+    //   logId: getCurrentTimestamp(),
+    //   message: `Data processing start: ${url}`,
+    //   level: "info",
+    //   timestamp: getCurrentTimestamp(),
+    // });
 
     try {
       // Fetch and parse data
@@ -48,12 +48,12 @@ async function eventDataCollectRequest({ value } = processedData) {
         timestamp: getCurrentTimestamp(),
       });
 
-      await sendDataCollectStatusRequest({
-        id: getCurrentTimestamp(),
-        status: "completed",
-        message: "Data collection is completed.",
-        timestamp: getCurrentTimestamp(),
-      });
+      // await sendDataCollectStatusRequest({
+      //   id: getCurrentTimestamp(),
+      //   status: "completed",
+      //   message: "Data collection is completed.",
+      //   timestamp: getCurrentTimestamp(),
+      // });
     } catch (error) {
       const errorMessage = errorCodes.DATA_FETCH_ERROR.message;
       await sendLogRequest({
@@ -70,12 +70,12 @@ async function eventDataCollectRequest({ value } = processedData) {
         timestamp: getCurrentTimestamp(),
       });
 
-      await sendDataCollectStatusRequest({
-        id: getCurrentTimestamp(),
-        status: "failed",
-        message: "Data collection has failed.",
-        timestamp: getCurrentTimestamp(),
-      });
+      // await sendDataCollectStatusRequest({
+      //   id: getCurrentTimestamp(),
+      //   status: "failed",
+      //   message: "Data collection has failed.",
+      //   timestamp: getCurrentTimestamp(),
+      // });
     }
   } else {
     const invalidMessageError = errorCodes.INVALID_MESSAGE_FORMAT.message;
