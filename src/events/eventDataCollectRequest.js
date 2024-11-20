@@ -39,21 +39,20 @@ async function eventDataCollectRequest({ value } = processedData) {
     const fetchStartTime = Date.now();
 
     try {
-
       const resultObject = await fetchDataAndParse(url);
+      const { parsedData, format } = resultObject; // Destructure to get parsed data and format
 
       const fetchEndTime = Date.now();
       const processingDuration = fetchEndTime - fetchStartTime;
 
-      //
       await sendDataCollectResponseRequest({
         id: helper.getCurrentTimestamp(),
-        data: resultObject,
+        data: parsedData,
         timestamp: helper.getCurrentTimestamp(),
         summary: {
           source: url,
-          itemCount: resultObject.length,
-          dataFormat: typeof resultObject,
+          itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
+          dataFormat: format, // Dynamically set dataFormat
           processingTime: processingDuration
         }
       });
@@ -81,7 +80,6 @@ async function eventDataCollectRequest({ value } = processedData) {
         timestamp: helper.getCurrentTimestamp(),
       });
 
-
       await sendDataCollectStatusRequest({
         id: helper.getCurrentTimestamp(),
         status: "failed",
@@ -90,7 +88,6 @@ async function eventDataCollectRequest({ value } = processedData) {
       });
     }
   } else {
-
     const invalidMessageError = errorCodes.INVALID_MESSAGE_FORMAT.message;
     await sendLogRequest({
       logId: helper.getCurrentTimestamp(),
@@ -100,5 +97,6 @@ async function eventDataCollectRequest({ value } = processedData) {
     });
   }
 }
+
 
 module.exports = { eventDataCollectRequest };
