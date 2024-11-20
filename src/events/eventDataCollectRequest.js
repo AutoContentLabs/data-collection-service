@@ -36,29 +36,35 @@ async function eventDataCollectRequest({ value } = processedData) {
   if (value.params && value.params.url) {
     const url = value.params.url;
 
-    // await sendLogRequest({
-    //   logId: getCurrentTimestamp(),
-    //   message: `Data processing start: ${url}`,
-    //   level: "info",
-    //   timestamp: getCurrentTimestamp(),
-    // });
+    const fetchStartTime = Date.now();
 
     try {
-      // Fetch and parse data
+
       const resultObject = await fetchDataAndParse(url);
 
+      const fetchEndTime = Date.now();
+      const processingDuration = fetchEndTime - fetchStartTime;
+
+      //
       await sendDataCollectResponseRequest({
         id: helper.getCurrentTimestamp(),
         data: resultObject,
         timestamp: helper.getCurrentTimestamp(),
+        summary: {
+          source: url,
+          itemCount: resultObject.length,
+          dataFormat: typeof resultObject,
+          processingTime: processingDuration
+        }
       });
 
-      // await sendDataCollectStatusRequest({
-      //   id: helper.getCurrentTimestamp(),
-      //   status: "completed",
-      //   message: "Data collection is completed.",
-      //   timestamp: helper.getCurrentTimestamp(),
-      // });
+      await sendDataCollectStatusRequest({
+        id: helper.getCurrentTimestamp(),
+        status: "completed",
+        message: "Data collection is completed successfully.",
+        timestamp: helper.getCurrentTimestamp(),
+      });
+
     } catch (error) {
 
       await sendLogRequest({
@@ -71,18 +77,20 @@ async function eventDataCollectRequest({ value } = processedData) {
       await sendDataCollectErrorRequest({
         id: helper.getCurrentTimestamp(),
         errorCode: errorCodes.DATA_FETCH_ERROR.code,
-        errorMessage: `${errorMessage}: ${error.message}`,
+        errorMessage: `${error.message}`,
         timestamp: helper.getCurrentTimestamp(),
       });
 
-      // await sendDataCollectStatusRequest({
-      //   id: helper.getCurrentTimestamp(),
-      //   status: "failed",
-      //   message: "Data collection has failed.",
-      //   timestamp: helper.getCurrentTimestamp(),
-      // });
+
+      await sendDataCollectStatusRequest({
+        id: helper.getCurrentTimestamp(),
+        status: "failed",
+        message: "Data collection has failed.",
+        timestamp: helper.getCurrentTimestamp(),
+      });
     }
   } else {
+
     const invalidMessageError = errorCodes.INVALID_MESSAGE_FORMAT.message;
     await sendLogRequest({
       logId: helper.getCurrentTimestamp(),
