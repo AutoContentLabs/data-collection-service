@@ -2,11 +2,16 @@
  * src\events\eventDataCollectRequest.js
  */
 
-const logger = require('@auto-content-labs/messaging/src/utils/logger');
-const { sendLogRequest, sendDataCollectResponseRequest, sendDataCollectStatusRequest, sendDataCollectErrorRequest } = require('@auto-content-labs/messaging');
+const {
+  logger,
+  helper,
+  errorCodes,
+  sendDataCollectResponseRequest,
+  sendLogRequest,
+  sendDataCollectStatusRequest,
+  sendDataCollectErrorRequest
+} = require('@auto-content-labs/messaging');
 const { fetchDataAndParse } = require('../helpers/fetchHandler');
-const { getCurrentTimestamp } = require('../helpers/timestamp');
-const errorCodes = require('../constants/errorCodes');
 
 /**
  * Handles data collection request events.
@@ -43,47 +48,47 @@ async function eventDataCollectRequest({ value } = processedData) {
       const resultObject = await fetchDataAndParse(url);
 
       await sendDataCollectResponseRequest({
-        id: getCurrentTimestamp(),
+        id: helper.getCurrentTimestamp(),
         data: resultObject,
-        timestamp: getCurrentTimestamp(),
+        timestamp: helper.getCurrentTimestamp(),
       });
 
       // await sendDataCollectStatusRequest({
-      //   id: getCurrentTimestamp(),
+      //   id: helper.getCurrentTimestamp(),
       //   status: "completed",
       //   message: "Data collection is completed.",
-      //   timestamp: getCurrentTimestamp(),
+      //   timestamp: helper.getCurrentTimestamp(),
       // });
     } catch (error) {
-      const errorMessage = errorCodes.DATA_FETCH_ERROR.message;
+
       await sendLogRequest({
-        logId: getCurrentTimestamp(),
-        message: `${errorMessage}: ${error.message}`,
+        logId: helper.getCurrentTimestamp(),
+        message: `${errorCodes.DATA_FETCH_ERROR.message}: ${error.message}`,
         level: "error",
-        timestamp: getCurrentTimestamp(),
+        timestamp: helper.getCurrentTimestamp(),
       });
 
       await sendDataCollectErrorRequest({
-        id: getCurrentTimestamp(),
+        id: helper.getCurrentTimestamp(),
         errorCode: errorCodes.DATA_FETCH_ERROR.code,
         errorMessage: `${errorMessage}: ${error.message}`,
-        timestamp: getCurrentTimestamp(),
+        timestamp: helper.getCurrentTimestamp(),
       });
 
       // await sendDataCollectStatusRequest({
-      //   id: getCurrentTimestamp(),
+      //   id: helper.getCurrentTimestamp(),
       //   status: "failed",
       //   message: "Data collection has failed.",
-      //   timestamp: getCurrentTimestamp(),
+      //   timestamp: helper.getCurrentTimestamp(),
       // });
     }
   } else {
     const invalidMessageError = errorCodes.INVALID_MESSAGE_FORMAT.message;
     await sendLogRequest({
-      logId: getCurrentTimestamp(),
+      logId: helper.getCurrentTimestamp(),
       message: invalidMessageError,
       level: "error",
-      timestamp: getCurrentTimestamp(),
+      timestamp: helper.getCurrentTimestamp(),
     });
   }
 }

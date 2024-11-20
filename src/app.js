@@ -3,8 +3,12 @@
  * @description Data Collector 
  */
 
-const logger = require("@auto-content-labs/messaging/src/utils/logger")
-const { events, eventHub, listenDataCollectRequest } = require('@auto-content-labs/messaging');
+const {
+  logger,
+  events,
+  eventHub,
+  listenDataCollectRequest
+} = require('@auto-content-labs/messaging');
 const { eventDataCollectRequest } = require("./events/eventDataCollectRequest")
 
 async function start() {
