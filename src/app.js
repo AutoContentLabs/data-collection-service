@@ -3,26 +3,25 @@
  * @description Data Collector 
  */
 
-const logger = require("./utils/logger");
-const { topics, listenMessage } = require('@auto-content-labs/messaging');
-const { onMessage } = require("./messageHandler");
+const logger = require("@auto-content-labs/messaging/src/utils/logger")
+const { events, eventHub, listenDataCollectRequest } = require('@auto-content-labs/messaging');
+const { eventDataCollectRequest } = require("./events/eventDataCollectRequest")
 
 async function start() {
   try {
     logger.info("Application starting...");
 
-    // Check for required configurations
-    if (!topics.dataCollectRequest) {
-      throw new Error("Topic 'dataCollectRequest' is not defined in topics.");
-    }
-
     // Start the listener for data collection requests
-    listenMessage(topics.dataCollectRequest, onMessage);
-    logger.info(`Listener started on topic: ${topics.dataCollectRequest}`);
+    await listenDataCollectRequest()
+    const eventName = events.dataCollectRequest
+    logger.info(`Listener started on event: ${eventName}`);
+
+    // events   
+    eventHub.on(eventName, eventDataCollectRequest)
 
   } catch (error) {
-    logger.error("Application failed to start:", error);
-    // Optionally retry logic can be added here, or set up an alert if critical
+    logger.error(`Application failed to start:${eventName}`, error);
+
   }
 }
 

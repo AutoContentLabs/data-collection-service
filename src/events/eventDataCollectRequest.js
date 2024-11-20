@@ -1,16 +1,18 @@
-const logger = require("./utils/logger");
+const logger = require('@auto-content-labs/messaging/src/utils/logger');
 const { sendLogRequest, sendDataCollectResponseRequest, sendDataCollectStatusRequest, sendDataCollectErrorRequest } = require('@auto-content-labs/messaging');
 const { fetcher, formatURL } = require("@auto-content-labs/fetcher");
-const cheerio = require("cheerio"); // HTML ayrıştırma için
-const xml2js = require("xml2js"); // XML ayrıştırma için
+const cheerio = require("cheerio");
+const xml2js = require("xml2js");
 
 /**
- * Incoming message processing function
- * 
- * @param {Object} message - Incoming message
+ * Event processed dataCollectRequest messages.
+ * @param {Object} processedData - The processedData data source.
+ * @param {Object} processedData.key - The key in the data pair (optional).
+ * @param {Object} processedData.value - The incoming model data
+ * @param {number} processedData.timestamp - Timestamp of the message.
+ * @param {number} processedData.headers - Headers of the message.
  */
-async function onMessage({ key, value, topic, timestamp, headers }) {
-
+async function eventDataCollectRequest({ value } = processedData) {
   if (!value) {
     logger.error("No value found in the message");
     return;
@@ -125,4 +127,4 @@ async function onMessage({ key, value, topic, timestamp, headers }) {
   }
 }
 
-module.exports = { onMessage };
+module.exports = { eventDataCollectRequest }
