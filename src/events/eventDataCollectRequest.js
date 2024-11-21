@@ -87,9 +87,9 @@ async function eventDataCollectRequest({ value } = processedData) {
       //   message: "Data collection is completed successfully.",
       //   timestamp: helper.getCurrentTimestamp(),
       // });
-
+      logger.notice(`[eventDataCollectRequest] completed ${url}`)
     } catch (error) {
-      const errorMessage = `Event Data Collect Request in fetch data and parse not completed with ${error}`
+      const errorMessage = `[eventDataCollectRequest] ${url} ${error}`
       logger.error(errorMessage)
       // throw new Error(errorMessage);
 
