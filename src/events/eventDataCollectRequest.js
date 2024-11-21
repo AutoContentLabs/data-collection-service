@@ -9,7 +9,8 @@ const {
   sendDataCollectResponseRequest,
   sendLogRequest,
   sendDataCollectStatusRequest,
-  sendDataCollectErrorRequest
+  sendDataCollectErrorRequest,
+  fileWriter
 } = require('@auto-content-labs/messaging');
 const { fetchDataAndParse } = require('../helpers/fetchHandler');
 
@@ -22,7 +23,7 @@ const { fetchDataAndParse } = require('../helpers/fetchHandler');
  */
 async function saveSourceLog(filePath, logData, append = false) {
   try {
-    await writeToFile(filePath, logData, append);
+    await fileWriter(filePath, logData, append);
     logger.info(`Source info saved to: ${filePath}`);
   } catch (error) {
     logger.error(`Error saving source log: ${error.message}`, { error });
