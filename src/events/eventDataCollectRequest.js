@@ -13,6 +13,23 @@ const {
 } = require('@auto-content-labs/messaging');
 const { fetchDataAndParse } = require('../helpers/fetchHandler');
 
+
+/**
+ * Saves the source log to a separate log file.
+ * @param {string} filePath - Path to the log file.
+ * @param {string} logData - Log data to be written.
+ * @param {boolean} append - Whether to append to the file or overwrite it.
+ */
+async function saveSourceLog(filePath, logData, append = false) {
+  try {
+    await writeToFile(filePath, logData, append);
+    logger.info(`Source info saved to: ${filePath}`);
+  } catch (error) {
+    logger.error(`Error saving source log: ${error.message}`, { error });
+    throw error; // Re-throw the error to be handled in the main function
+  }
+}
+
 /**
  * Handles data collection request events.
  * @param {Object} processedData - The processedData data source.
@@ -44,57 +61,67 @@ async function eventDataCollectRequest({ value } = processedData) {
 
       const fetchEndTime = Date.now();
       const processingDuration = fetchEndTime - fetchStartTime;
+      const id = helper.getCurrentTimestamp()
 
-      await sendDataCollectResponseRequest({
-        id: helper.getCurrentTimestamp(),
-        data: parsedData,
-        timestamp: helper.getCurrentTimestamp(),
-        summary: {
-          source: url,
-          itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
-          dataFormat: format, // Dynamically set dataFormat
-          processingTime: processingDuration
-        }
-      });
+      // Save source information to a separate log file
+      const sourceFile = `sources.csv`;
+      const sourceLog = `${id}, ${url}, ${format}, ${fetchStartTime}, ${fetchEndTime}, ${processingDuration}\n`;
+      await saveSourceLog(path.join(__dirname, '../../files/logs', sourceFile), sourceLog, true);
 
-      await sendDataCollectStatusRequest({
-        id: helper.getCurrentTimestamp(),
-        status: "completed",
-        message: "Data collection is completed successfully.",
-        timestamp: helper.getCurrentTimestamp(),
-      });
+      // await sendDataCollectResponseRequest({
+      //   id: helper.getCurrentTimestamp(),
+      //   data: parsedData,
+      //   timestamp: helper.getCurrentTimestamp(),
+      //   summary: {
+      //     source: url,
+      //     itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
+      //     dataFormat: format, // Dynamically set dataFormat
+      //     processingTime: processingDuration
+      //   }
+      // });
+
+      // await sendDataCollectStatusRequest({
+      //   id: helper.getCurrentTimestamp(),
+      //   status: "completed",
+      //   message: "Data collection is completed successfully.",
+      //   timestamp: helper.getCurrentTimestamp(),
+      // });
 
     } catch (error) {
+      const errorMessage = `Event Data Collect Request in fetch data and parse not completed with ${error}`
+      logger.error(errorMessage)
+      // throw new Error(errorMessage);
 
-      await sendLogRequest({
-        logId: helper.getCurrentTimestamp(),
-        message: `${errorCodes.DATA_FETCH_ERROR.message}: ${error.message}`,
-        level: "error",
-        timestamp: helper.getCurrentTimestamp(),
-      });
 
-      await sendDataCollectErrorRequest({
-        id: helper.getCurrentTimestamp(),
-        errorCode: errorCodes.DATA_FETCH_ERROR.code,
-        errorMessage: `${error.message}`,
-        timestamp: helper.getCurrentTimestamp(),
-      });
+      // await sendLogRequest({
+      //   logId: helper.getCurrentTimestamp(),
+      //   message: `${errorCodes.DATA_FETCH_ERROR.message}: ${error.message}`,
+      //   level: "error",
+      //   timestamp: helper.getCurrentTimestamp(),
+      // });
 
-      await sendDataCollectStatusRequest({
-        id: helper.getCurrentTimestamp(),
-        status: "failed",
-        message: "Data collection has failed.",
-        timestamp: helper.getCurrentTimestamp(),
-      });
+      // await sendDataCollectErrorRequest({
+      //   id: helper.getCurrentTimestamp(),
+      //   errorCode: errorCodes.DATA_FETCH_ERROR.code,
+      //   errorMessage: `${error.message}`,
+      //   timestamp: helper.getCurrentTimestamp(),
+      // });
+
+      // await sendDataCollectStatusRequest({
+      //   id: helper.getCurrentTimestamp(),
+      //   status: "failed",
+      //   message: "Data collection has failed.",
+      //   timestamp: helper.getCurrentTimestamp(),
+      // });
     }
   } else {
-    const invalidMessageError = errorCodes.INVALID_MESSAGE_FORMAT.message;
-    await sendLogRequest({
-      logId: helper.getCurrentTimestamp(),
-      message: invalidMessageError,
-      level: "error",
-      timestamp: helper.getCurrentTimestamp(),
-    });
+    // const invalidMessageError = errorCodes.INVALID_MESSAGE_FORMAT.message;
+    // await sendLogRequest({
+    //   logId: helper.getCurrentTimestamp(),
+    //   message: invalidMessageError,
+    //   level: "error",
+    //   timestamp: helper.getCurrentTimestamp(),
+    // });
   }
 }
 

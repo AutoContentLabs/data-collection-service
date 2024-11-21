@@ -10,6 +10,7 @@ services:
       - network_shared
     volumes:
       - logs:/workspaces/app/logs
+      - files:/workspaces/app/files
     restart: always
     command: "npm start"
     logging:
@@ -18,14 +19,14 @@ services:
         max-size: "10m"
         max-file: "3"
     deploy:
-      replicas: 3
-      resources:
-        limits:
-          cpus: "0.2"
-          # memory: 2048M          
-          # reservations:
-          #   cpus: "0.1"          
-          #   memory: 256M          
+      replicas: 1
+      # resources:
+      #   limits:
+      #     cpus: "0.2"
+      #     # memory: 2048M          
+      #     # reservations:
+      #     #   cpus: "0.1"          
+      #     #   memory: 256M          
       restart_policy:
         condition: on-failure
     # expose:
@@ -39,6 +40,7 @@ services:
 
 volumes:
   logs:
+  files:
 
 
 networks:

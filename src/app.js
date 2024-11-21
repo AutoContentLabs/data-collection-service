@@ -7,21 +7,30 @@ const {
   logger,
   events,
   eventHub,
-  listenDataCollectRequest
+  listenDataCollectRequest,
+  listenMessage
 } = require('@auto-content-labs/messaging');
 const { eventDataCollectRequest } = require("./events/eventDataCollectRequest")
 
+// Start the listener for data collection requests
 async function start() {
   try {
     logger.info("Application starting...");
 
-    // Start the listener for data collection requests
-    await listenDataCollectRequest()
+    // The event we will listen to.
     const eventName = events.dataCollectRequest
-    logger.info(`Listener started on event: ${eventName}`);
+
+    // This method adds events to the event center.
+    // In case of a transaction error, the data is not read again.
+    // await listenDataCollectRequest()
+    await listenMessage(eventName, eventDataCollectRequest)
 
     // events   
-    eventHub.on(eventName, eventDataCollectRequest)
+    // If we use this method, if there is a problem in processing the data after receiving it,
+    // we cannot get the same information again.
+    // eventHub.on(eventName, eventDataCollectRequest)
+
+    logger.info(`Listener started on event: ${eventName}`);
 
   } catch (error) {
     logger.error(`Application failed to start:${eventName}`, error);
