@@ -15,8 +15,12 @@ async function saveSourceLog(filePath, logData, append = false) {
 
 /**
  * Handles data collection request events.
- * @param {Object} processedData - The processedData data source.
+ * @param {Object} processedData - The processed data source object.
  * @param {Object} processedData.value - The incoming model data.
+ * @param {Object} processedData.headers - The request headers.
+ * @param {string} processedData.value.url - The URL to fetch data from.
+ * @param {string} processedData.value.id - The unique task identifier.
+ * @param {Object} processedData.headers.correlationId - The correlation ID for tracking.
  */
 async function eventDataCollectRequest({ value, headers } = {}) {
   if (!value) {
@@ -29,8 +33,11 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     return;
   }
 
-  // total task ( optional )
-  const total = value.total | 0
+  // Get the number of Kafka partitions from environment variables, defaulting to 1
+  const partitions = parseInt(process.env.KAFKA_NUM_PARTITIONS, 10) || 1;
+  // Calculate the total number of tasks, ensuring it defaults to 1 if zero
+  const total = Math.max(value.total / partitions, 1);
+
   const id = value.id;
   const url = value.params.url;
   const fetchStartTime = Date.now();
@@ -61,28 +68,32 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     );
 
     // Log the progress
-    logger.notice(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url} `);
-    if (tasksProcessed % 10 === 0 || tasksProcessed === totalTasks)
+    logger.notice(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url}`);
+    if (global.tasksProcessed % 10 === 0 || global.tasksProcessed === totalTasks) {
       logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
+    }
 
-    // await sendDataCollectResponseRequest({
-    //   id: helper.getCurrentTimestamp(),
-    //   data: parsedData,
-    //   timestamp: helper.getCurrentTimestamp(),
-    //   summary: {
-    //     source: url,
-    //     itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
-    //     dataFormat: format, // Dynamically set dataFormat
-    //     processingTime: processingDuration
-    //   }
-    // });
+    // Uncomment below if needed to send responses (e.g., sending data, status updates)
+    /*
+    await sendDataCollectResponseRequest({
+      id: helper.getCurrentTimestamp(),
+      data: parsedData,
+      timestamp: helper.getCurrentTimestamp(),
+      summary: {
+        source: url,
+        itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
+        dataFormat: format, // Dynamically set dataFormat
+        processingTime: processingDuration
+      }
+    });
 
-    // await sendDataCollectStatusRequest({
-    //   id: helper.getCurrentTimestamp(),
-    //   status: "completed",
-    //   message: "Data collection is completed successfully.",
-    //   timestamp: helper.getCurrentTimestamp(),
-    // });
+    await sendDataCollectStatusRequest({
+      id: helper.getCurrentTimestamp(),
+      status: "completed",
+      message: "Data collection is completed successfully.",
+      timestamp: helper.getCurrentTimestamp(),
+    });
+    */
 
   } catch (error) {
     if (error instanceof Error) {
@@ -91,19 +102,23 @@ async function eventDataCollectRequest({ value, headers } = {}) {
       logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} url: ${url} - ${typeof error} `);
     }
 
-    // await sendDataCollectErrorRequest({
-    //   id: helper.getCurrentTimestamp(),
-    //   errorCode: errorCodes.DATA_FETCH_ERROR.code,
-    //   errorMessage: `${error.message}`,
-    //   timestamp: helper.getCurrentTimestamp(),
-    // });
+    // Uncomment below if needed to handle errors (e.g., sending error status)
+    /*
+    await sendDataCollectErrorRequest({
+      id: helper.getCurrentTimestamp(),
+      errorCode: errorCodes.DATA_FETCH_ERROR.code,
+      errorMessage: `${error.message}`,
+      timestamp: helper.getCurrentTimestamp(),
+    });
 
-    // await sendDataCollectStatusRequest({
-    //   id: helper.getCurrentTimestamp(),
-    //   status: "failed",
-    //   message: "Data collection has failed.",
-    //   timestamp: helper.getCurrentTimestamp(),
-    // });
+    await sendDataCollectStatusRequest({
+      id: helper.getCurrentTimestamp(),
+      status: "failed",
+      message: "Data collection has failed.",
+      timestamp: helper.getCurrentTimestamp(),
+    });
+    */
+
     throw error;
   }
 }
