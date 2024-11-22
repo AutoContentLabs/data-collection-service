@@ -75,7 +75,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   timestamp: helper.getCurrentTimestamp(),
     // });
 
-    logger.notice(`[eventDataCollectRequest] correlationId ${headers.correlationId.toString()} completed: ${url}`);
+    logger.notice(`[dcs] correlationId ${headers.correlationId.toString()} completed: ${url}`);
   } catch (error) {
 
     // await sendDataCollectErrorRequest({
@@ -93,9 +93,9 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     // });
 
     if (error instanceof Error) {
-      logger.error(`[eventDataCollectRequest] url: ${url} - ${error.name}`);
+      logger.error(`[dcs] correlationId ${headers.correlationId.toString()} url: ${url} - ${error.name}`);
     } else {
-      logger.error(`[eventDataCollectRequest] url: ${url} - ${typeof error}`);
+      logger.error(`[dcs] correlationId ${headers.correlationId.toString()} url: ${url} - ${typeof error}`);
     }
     throw error; // Rethrow for external error handling
   }
