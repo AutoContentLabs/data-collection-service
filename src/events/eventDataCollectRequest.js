@@ -1,17 +1,8 @@
 const path = require("path");
-const {
-  logger,
-  helper,
-  fileWriter,
-} = require("@auto-content-labs/messaging");
+const { logger, fileWriter } = require("@auto-content-labs/messaging");
 const { fetchDataAndParse } = require("../helpers/fetchHandler");
+const { calculateProgress } = require("../helpers/progress");
 
-/**
- * Saves the source log to a separate log file.
- * @param {string} filePath - Path to the log file.
- * @param {string} logData - Log data to be written.
- * @param {boolean} append - Whether to append to the file or overwrite it.
- */
 async function saveSourceLog(filePath, logData, append = false) {
   try {
     await fileWriter(filePath, logData, append);
@@ -37,23 +28,38 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     logger.error("URL parameter is missing");
     return;
   }
-  const id = value.id
+
+  const id = value.id;
   const url = value.params.url;
   const fetchStartTime = Date.now();
 
   try {
-    // Fetch and parse the data
     const { parsedData, format } = await fetchDataAndParse(url);
 
     const fetchEndTime = Date.now();
     const processingDuration = fetchEndTime - fetchStartTime;
 
-    // Save source log
     const sourceFile = "sources.csv";
     const sourceLog = `${id},${url},${format},${fetchStartTime},${fetchEndTime},${processingDuration}\n`;
     const logPath = path.join(__dirname, "../../files/logs", sourceFile);
 
     await saveSourceLog(logPath, sourceLog, true);
+
+    // Increment the task processed counter
+    global.tasksProcessed++;
+
+    // If totalTasks is 0, set it to 1 (to avoid division by zero)
+    const totalTasks = global.totalTasks || 1;
+
+    // Calculate progress and estimate remaining time using the helper function
+    const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = calculateProgress(
+      global.tasksProcessed,
+      totalTasks,
+      global.startTime
+    );
+
+    // Log the progress
+    logger.notice(`[dcs] [${id}]/${headers.correlationId.toString()} [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}] url: ${url} `);
 
     // await sendDataCollectResponseRequest({
     //   id: helper.getCurrentTimestamp(),
@@ -74,8 +80,12 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   timestamp: helper.getCurrentTimestamp(),
     // });
 
-    logger.notice(`[dcs] [${id}] correlationId ${headers.correlationId.toString()} url: ${url}`);
   } catch (error) {
+    if (error instanceof Error) {
+      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}] url: ${url} - ${error.name} `);
+    } else {
+      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}] url: ${url} - ${typeof error} `);
+    }
 
     // await sendDataCollectErrorRequest({
     //   id: helper.getCurrentTimestamp(),
@@ -90,13 +100,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   message: "Data collection has failed.",
     //   timestamp: helper.getCurrentTimestamp(),
     // });
-
-    if (error instanceof Error) {
-      logger.error(`[dcs] [${id}] correlationId ${headers.correlationId.toString()} url: ${url} - ${error.name}`);
-    } else {
-      logger.error(`[dcs] [${id}] correlationId ${headers.correlationId.toString()} url: ${url} - ${typeof error}`);
-    }
-    throw error; // Rethrow for external error handling
+    throw error;
   }
 }
 

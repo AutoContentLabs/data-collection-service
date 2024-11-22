@@ -1,3 +1,4 @@
+// src\helpers\fetchHandler.js
 const { fetcher, formatURL } = require("@auto-content-labs/fetcher");
 const { parseData } = require("./parser");
 
