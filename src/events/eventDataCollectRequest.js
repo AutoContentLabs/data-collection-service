@@ -49,7 +49,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     global.tasksProcessed++;
 
     // If totalTasks is 0, set it to 1 (to avoid division by zero)
-    const totalTasks = global.totalTasks || 1;
+    let totalTasks = global.totalTasks || 1;
 
     // Calculate progress and estimate remaining time using the helper function
     const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = calculateProgress(
@@ -59,7 +59,9 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     );
 
     // Log the progress
-    logger.notice(`[dcs] [${id}]/${headers.correlationId.toString()} [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}] url: ${url} `);
+    logger.notice(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url} `);
+    if (tasksProcessed % 10 === 0 || tasksProcessed === totalTasks)
+      logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
 
     // await sendDataCollectResponseRequest({
     //   id: helper.getCurrentTimestamp(),
@@ -82,9 +84,9 @@ async function eventDataCollectRequest({ value, headers } = {}) {
 
   } catch (error) {
     if (error instanceof Error) {
-      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}] url: ${url} - ${error.name} `);
+      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} url: ${url} - ${error.name} `);
     } else {
-      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}] url: ${url} - ${typeof error} `);
+      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} url: ${url} - ${typeof error} `);
     }
 
     // await sendDataCollectErrorRequest({
