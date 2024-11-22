@@ -92,7 +92,11 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   timestamp: helper.getCurrentTimestamp(),
     // });
 
-    logger.error(`[eventDataCollectRequest] [error] url: ${url} - error: ${error.message}`);
+    if (error instanceof Error) {
+      logger.error(`[eventDataCollectRequest] url: ${url} - ${error.name}`);
+    } else {
+      logger.error(`[eventDataCollectRequest] url: ${url} - ${typeof error}`);
+    }
     throw error; // Rethrow for external error handling
   }
 }

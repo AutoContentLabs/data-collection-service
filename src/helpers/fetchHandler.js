@@ -15,7 +15,7 @@ async function fetchDataAndParse(url) {
 
   let data;
   try {
-    data = await fetcher(formattedUrl, { timeout: 1000, maxRetries: 2, retryDelay: 200, log: true });
+    data = await fetcher(formattedUrl, { timeout: 1000, maxRetries: 1, retryDelay: 200, log: false });
   } catch (fetchError) {
     throw new Error(`Failed to fetch data: ${fetchError.message}`);
   }
