@@ -37,7 +37,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     logger.error("URL parameter is missing");
     return;
   }
-
+  const id = value.id
   const url = value.params.url;
   const fetchStartTime = Date.now();
 
@@ -47,7 +47,6 @@ async function eventDataCollectRequest({ value, headers } = {}) {
 
     const fetchEndTime = Date.now();
     const processingDuration = fetchEndTime - fetchStartTime;
-    const id = helper.getCurrentTimestamp();
 
     // Save source log
     const sourceFile = "sources.csv";
@@ -75,7 +74,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   timestamp: helper.getCurrentTimestamp(),
     // });
 
-    logger.notice(`[dcs] correlationId ${headers.correlationId.toString()} completed: ${url}`);
+    logger.notice(`[dcs] [${id}] correlationId ${headers.correlationId.toString()} url: ${url}`);
   } catch (error) {
 
     // await sendDataCollectErrorRequest({
@@ -93,9 +92,9 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     // });
 
     if (error instanceof Error) {
-      logger.error(`[dcs] correlationId ${headers.correlationId.toString()} url: ${url} - ${error.name}`);
+      logger.error(`[dcs] [${id}] correlationId ${headers.correlationId.toString()} url: ${url} - ${error.name}`);
     } else {
-      logger.error(`[dcs] correlationId ${headers.correlationId.toString()} url: ${url} - ${typeof error}`);
+      logger.error(`[dcs] [${id}] correlationId ${headers.correlationId.toString()} url: ${url} - ${typeof error}`);
     }
     throw error; // Rethrow for external error handling
   }
