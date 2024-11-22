@@ -29,6 +29,8 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     return;
   }
 
+  // total task ( optional )
+  const total = value.total | 0
   const id = value.id;
   const url = value.params.url;
   const fetchStartTime = Date.now();
@@ -49,7 +51,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     global.tasksProcessed++;
 
     // If totalTasks is 0, set it to 1 (to avoid division by zero)
-    let totalTasks = global.totalTasks || 1;
+    let totalTasks = total || 1;
 
     // Calculate progress and estimate remaining time using the helper function
     const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = calculateProgress(

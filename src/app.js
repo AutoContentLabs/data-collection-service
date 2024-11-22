@@ -12,7 +12,6 @@ const {
 } = require('@auto-content-labs/messaging');
 const { eventDataCollectRequest } = require("./events/eventDataCollectRequest");
 
-global.totalTasks = 1000000
 global.tasksProcessed = 0;
 global.startTime = null;
 
