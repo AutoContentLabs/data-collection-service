@@ -27,7 +27,7 @@ async function saveSourceLog(filePath, logData, append = false) {
  * @param {Object} processedData - The processedData data source.
  * @param {Object} processedData.value - The incoming model data.
  */
-async function eventDataCollectRequest({ value } = {}) {
+async function eventDataCollectRequest({ value, headers } = {}) {
   if (!value) {
     logger.error("No value found in the message");
     return;
@@ -75,7 +75,7 @@ async function eventDataCollectRequest({ value } = {}) {
     //   timestamp: helper.getCurrentTimestamp(),
     // });
 
-    logger.notice(`[eventDataCollectRequest] completed: ${url}`);
+    logger.notice(`[eventDataCollectRequest] correlationId ${headers.correlationId.toString()} completed: ${url}`);
   } catch (error) {
 
     // await sendDataCollectErrorRequest({
@@ -92,7 +92,7 @@ async function eventDataCollectRequest({ value } = {}) {
     //   timestamp: helper.getCurrentTimestamp(),
     // });
 
-    logger.error(`[eventDataCollectRequest] Error processing URL: ${url} - ${error.message}`);
+    logger.error(`[eventDataCollectRequest] [error] url: ${url} - error: ${error.message}`);
     throw error; // Rethrow for external error handling
   }
 }
