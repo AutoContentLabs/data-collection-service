@@ -21,7 +21,7 @@ services:
     deploy:
       replicas: 3
       restart_policy:
-        condition: on-failure
+        condition: always
 
 volumes:
   logs:
