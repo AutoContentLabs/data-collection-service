@@ -1,16 +1,18 @@
 services:
 
-  service:
+  service-kafka:
     build:
       context: ../../
       dockerfile: .docker/production/Dockerfile
     env_file:
       - .env.${APP_ENV}
+    environment:
+      - MESSAGE_SYSTEM=kafka
     networks:
       - network_shared
     volumes:
-      - logs:/workspaces/app/logs
-      - files:/workspaces/app/files
+      - logs_dc_kafka:/workspaces/app/logs
+      - files_dc_kafka:/workspaces/app/files
     restart: always
     command: "npm start"
     logging:
@@ -19,7 +21,71 @@ services:
         max-size: "10m"
         max-file: "3"
     deploy:
-      replicas: 3
+      replicas: 1
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: always
+
+  service-mq:
+    build:
+      context: ../../
+      dockerfile: .docker/production/Dockerfile
+    env_file:
+      - .env.${APP_ENV}
+    environment:
+      - MESSAGE_SYSTEM=rabbitmq
+    networks:
+      - network_shared
+    volumes:
+      - logs_dc_rabbitmq:/workspaces/app/logs
+      - files_dc_rabbitmq:/workspaces/app/files
+    restart: always
+    command: "npm start"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: 1
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: "2g"
+        reservations:
+          cpus: "0.5"
+          memory: "1g"
+      restart_policy:
+        condition: always
+
+  service-redis:
+    build:
+      context: ../../
+      dockerfile: .docker/production/Dockerfile
+    env_file:
+      - .env.${APP_ENV}
+    environment:
+      - MESSAGE_SYSTEM=redis
+    networks:
+      - network_shared
+    volumes:
+      - logs_dc_redis:/workspaces/app/logs
+      - files_dc_redis:/workspaces/app/files
+    restart: always
+    command: "npm start"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+    deploy:
+      replicas: 1
       resources:
         limits:
           cpus: "2.0"
@@ -31,8 +97,12 @@ services:
         condition: always
 
 volumes:
-  logs:
-  files:
+  logs_dc_kafka:
+  files_dc_kafka:
+  logs_dc_rabbitmq:
+  files_dc_rabbitmq:
+  logs_dc_redis:
+  files_dc_redis:
 
 
 networks:
