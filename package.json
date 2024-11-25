@@ -2,10 +2,11 @@
   "name": "data-collector",
   "version": "1.0.0",
   "description": "Data Collection Service",
+  "type": "commonjs",
   "main": "src/app.js",
   "scripts": {
-    "start": "dotenvx run -f .env.production -- node --max-old-space-size=4096 src/app.js",
-    "dev": "dotenvx run -f .env.development -- node --max-old-space-size=4096 src/app.js",
+    "start": "dotenvx run -f .env.production -- node --max-old-space-size=2048 --cpu-prof --gc-interval=100 --optimize_for_size src/app.js",
+    "dev": "dotenvx run -f .env.development -- node --max-old-space-size=4096 --inspect --cpu-prof --gc-interval=100 --optimize_for_size src/app.js",
     "test": "dotenvx run -f .env.test -- jest"
   },
   "engines": {
@@ -19,8 +20,6 @@
     "winston": "^3.17.0",
     "xml2js": "^0.6.2"
   },
-  "author": "Quenteon",
-  "license": "MIT",
   "devDependencies": {
     "jest": "^29.7.0",
     "supertest": "^7.0.0"
