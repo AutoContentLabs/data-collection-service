@@ -1,4 +1,3 @@
-// src\helpers\fetchHandler.js
 const { fetcher, formatURL } = require("@auto-content-labs/fetcher");
 const { parseData } = require("./parser");
 
@@ -18,7 +17,7 @@ async function fetchDataAndParse(url) {
   try {
     data = await fetcher(formattedUrl, { timeout: 1000, maxRetries: 1, retryDelay: 200, log: false });
   } catch (fetchError) {
-    throw new Error(`Failed to fetch data: ${fetchError.message}`);
+    throw new Error(`Failed to fetch data from URL: ${fetchError.message}`);
   }
 
   if (!data) {
