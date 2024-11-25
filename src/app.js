@@ -6,8 +6,6 @@
 const {
   logger,
   events,
-  eventHub,
-  listenDataCollectRequest,
   listenMessage
 } = require('@auto-content-labs/messaging');
 const { eventDataCollectRequest } = require("./events/eventDataCollectRequest");
