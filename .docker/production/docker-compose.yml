@@ -32,7 +32,7 @@ services:
       restart_policy:
         condition: always
 
-  service-mq:
+  service-rabbitmq:
     build:
       context: ../../
       dockerfile: .docker/production/Dockerfile
