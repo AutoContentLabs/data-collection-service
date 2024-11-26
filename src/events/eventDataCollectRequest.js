@@ -90,14 +90,14 @@ async function eventDataCollectRequest({ value, headers } = {}) {
         dataFormat: format, // Dynamically set dataFormat
         processingTime: processingDuration
       }
-    });
+    }, headers.correlationId.toString());
 
     await sendDataCollectStatusRequest({
       id,
       status: "completed",
       message: "Data collection is completed successfully.",
       timestamp: helper.getCurrentTimestamp(),
-    });
+    }, headers.correlationId.toString());
 
 
   } catch (error) {
@@ -112,14 +112,14 @@ async function eventDataCollectRequest({ value, headers } = {}) {
       errorCode: errorCodes.DATA_FETCH_ERROR.code,
       errorMessage: `${error.message}`,
       timestamp: helper.getCurrentTimestamp(),
-    });
+    }, headers.correlationId.toString());
 
     await sendDataCollectStatusRequest({
       id,
       status: "failed",
       message: "Data collection has failed.",
       timestamp: helper.getCurrentTimestamp(),
-    });
+    }, headers.correlationId.toString());
 
 
     throw error;
