@@ -1,5 +1,12 @@
 const path = require("path");
-const { logger, fileWriter } = require("@auto-content-labs/messaging");
+const {
+  logger,
+  helper,
+  fileWriter,
+  sendDataCollectResponseRequest,
+  sendDataCollectStatusRequest,
+  sendDataCollectErrorRequest
+} = require("@auto-content-labs/messaging");
 const { fetchDataAndParse } = require("../helpers/fetchHandler");
 const { calculateProgress } = require("../helpers/progress");
 
@@ -73,8 +80,6 @@ async function eventDataCollectRequest({ value, headers } = {}) {
       logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
     }
 
-    // Uncomment below if needed to send responses (e.g., sending data, status updates)
-    /*
     await sendDataCollectResponseRequest({
       id: helper.getCurrentTimestamp(),
       data: parsedData,
@@ -93,17 +98,15 @@ async function eventDataCollectRequest({ value, headers } = {}) {
       message: "Data collection is completed successfully.",
       timestamp: helper.getCurrentTimestamp(),
     });
-    */
+
 
   } catch (error) {
     if (error instanceof Error) {
-      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} url: ${url} - ${error.name} `);
+      logger.error(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url} - ${error.name}`);
     } else {
-      logger.error(`[dcs] [${id}]/${headers.correlationId.toString()} url: ${url} - ${typeof error} `);
+      logger.error(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url} - ${typeof error}`);
     }
 
-    // Uncomment below if needed to handle errors (e.g., sending error status)
-    /*
     await sendDataCollectErrorRequest({
       id: helper.getCurrentTimestamp(),
       errorCode: errorCodes.DATA_FETCH_ERROR.code,
@@ -117,7 +120,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
       message: "Data collection has failed.",
       timestamp: helper.getCurrentTimestamp(),
     });
-    */
+
 
     throw error;
   }
