@@ -81,7 +81,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     }
 
     await sendDataCollectResponseRequest({
-      id: helper.getCurrentTimestamp(),
+      id,
       data: parsedData,
       timestamp: helper.getCurrentTimestamp(),
       summary: {
@@ -93,7 +93,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     });
 
     await sendDataCollectStatusRequest({
-      id: helper.getCurrentTimestamp(),
+      id,
       status: "completed",
       message: "Data collection is completed successfully.",
       timestamp: helper.getCurrentTimestamp(),
@@ -108,14 +108,14 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     }
 
     await sendDataCollectErrorRequest({
-      id: helper.getCurrentTimestamp(),
+      id,
       errorCode: errorCodes.DATA_FETCH_ERROR.code,
       errorMessage: `${error.message}`,
       timestamp: helper.getCurrentTimestamp(),
     });
 
     await sendDataCollectStatusRequest({
-      id: helper.getCurrentTimestamp(),
+      id,
       status: "failed",
       message: "Data collection has failed.",
       timestamp: helper.getCurrentTimestamp(),
