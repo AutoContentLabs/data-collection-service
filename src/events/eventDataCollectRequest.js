@@ -36,11 +36,6 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     return;
   }
 
-  if (!value.params || !value.params.url) {
-    logger.error("URL parameter is missing");
-    return;
-  }
-
   const model = await handleDataCollectRequest({value, headers})
 
   // Get the number of Kafka partitions from environment variables, defaulting to 1
