@@ -73,52 +73,69 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     );
 
     // Log the progress
-    logger.notice(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url}`);
+    logger.notice(`[dcs] [${id}] ${headers.correlationId} url: ${url}`);
     if (global.tasksProcessed % 10 === 0 || global.tasksProcessed === totalTasks) {
       logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
     }
 
-    await sendDataCollectResponseRequest({
-      id,
-      data: parsedData,
-      timestamp: helper.getCurrentTimestamp(),
-      summary: {
-        source: url,
-        itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
-        dataFormat: format, // Dynamically set dataFormat
-        processingTime: processingDuration
+    await sendDataCollectResponseRequest(
+      {
+        value: {
+          id,
+          data: parsedData,
+          timestamp: helper.getCurrentTimestamp(),
+          summary: {
+            source: url,
+            itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
+            dataFormat: format, // Dynamically set dataFormat
+            processingTime: processingDuration
+          }
+        },
+        headers
       }
-    }, headers.correlationId.toString());
+    );
 
-    await sendDataCollectStatusRequest({
-      id,
-      status: "completed",
-      message: "Data collection is completed successfully.",
-      timestamp: helper.getCurrentTimestamp(),
-    }, headers.correlationId.toString());
-
+    await sendDataCollectStatusRequest(
+      {
+        value: {
+          id,
+          status: "completed",
+          message: "Data collection is completed successfully.",
+          timestamp: helper.getCurrentTimestamp(),
+        },
+        headers
+      }
+    );
 
   } catch (error) {
     if (error instanceof Error) {
-      logger.error(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url} - ${error.name}`);
+      logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${error.name}`);
     } else {
-      logger.error(`[dcs] [${id}] ${headers.correlationId.toString()} url: ${url} - ${typeof error}`);
+      logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${typeof error}`);
     }
 
     await sendDataCollectErrorRequest({
-      id,
-      errorCode: errorCodes.DATA_FETCH_ERROR.code,
-      errorMessage: `${error.message}`,
-      timestamp: helper.getCurrentTimestamp(),
-    }, headers.correlationId.toString());
+      value: {
+        id,
+        errorCode: errorCodes.DATA_FETCH_ERROR.code,
+        errorMessage: `${error.message}`,
+        timestamp: helper.getCurrentTimestamp(),
+      },
+      headers
+    }
+    );
 
-    await sendDataCollectStatusRequest({
-      id,
-      status: "failed",
-      message: "Data collection has failed.",
-      timestamp: helper.getCurrentTimestamp(),
-    }, headers.correlationId.toString());
-
+    await sendDataCollectStatusRequest(
+      {
+        value: {
+          id,
+          status: "failed",
+          message: "Data collection has failed.",
+          timestamp: helper.getCurrentTimestamp(),
+        },
+        headers
+      }
+    );
 
     throw error;
   }
