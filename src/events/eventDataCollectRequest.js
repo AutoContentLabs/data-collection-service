@@ -3,6 +3,7 @@ const {
   logger,
   helper,
   fileWriter,
+  handleDataCollectRequest,
   sendDataCollectResponseRequest,
   sendDataCollectStatusRequest,
   sendDataCollectErrorRequest
@@ -40,13 +41,15 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     return;
   }
 
+  const model = await handleDataCollectRequest({value, headers})
+
   // Get the number of Kafka partitions from environment variables, defaulting to 1
   const partitions = parseInt(process.env.KAFKA_NUM_PARTITIONS, 10) || 1;
   // Calculate the total number of tasks, ensuring it defaults to 1 if zero
-  const total = Math.max(value.total / partitions, 1);
+  const total = Math.max(1 / partitions, 1);
 
-  const id = value.id;
-  const url = value.params.url;
+  const id = model.id;
+  const url = model.url;
   const fetchStartTime = Date.now();
 
   try {
