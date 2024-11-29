@@ -36,7 +36,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     return;
   }
 
-  const model = await handleDataCollectRequest({value, headers})
+  const model = await handleDataCollectRequest({ value, headers })
 
   // Get the number of Kafka partitions from environment variables, defaulting to 1
   const partitions = parseInt(process.env.KAFKA_NUM_PARTITIONS, 10) || 1;
@@ -44,7 +44,7 @@ async function eventDataCollectRequest({ value, headers } = {}) {
   const total = Math.max(1 / partitions, 1);
 
   const id = model.id;
-  const url = model.url;
+  const url = model.service.parameters.url;
   const fetchStartTime = Date.now();
 
   try {
