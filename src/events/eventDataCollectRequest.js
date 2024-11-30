@@ -100,14 +100,27 @@ async function eventDataCollectRequest({ value, headers } = {}) {
       data: [parsedData]
     };
 
+    const exampleData = {
+      "title": "GitHub · Build and ship software on a single, collaborative platform · GitHubTwitchTikTok",
+      "headings": [
+        "Search code, repositories, users, issues, pull requests...",
+      ],
+      "paragraphs": [
+        "We read every piece of feedback, and take your input very seriously.",
+      ]
+    }
     const response = {
       id: model.id,
       service: model.service,
-      content: content
+      content: {
+        content_type: "json",
+        content_length: 1,
+        data: [exampleData]
+      }
     };
 
     // Send the successful response
-    await sendDataCollectResponseRequest({ value: response, headers });
+    await sendDataCollectResponseRequest({ value: response });
 
     // // Send status update indicating completion
     // await sendDataCollectStatusRequest({
