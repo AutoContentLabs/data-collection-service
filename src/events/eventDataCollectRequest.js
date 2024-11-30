@@ -11,6 +11,12 @@ const {
 const { fetchDataAndParse } = require("../helpers/fetchHandler");
 const { calculateProgress } = require("../helpers/progress");
 
+/**
+ * Saves the source log to the specified file.
+ * @param {string} filePath - The path of the log file.
+ * @param {string} logData - The log data to save.
+ * @param {boolean} append - Whether to append to the file or overwrite.
+ */
 async function saveSourceLog(filePath, logData, append = false) {
   try {
     await fileWriter(filePath, logData, append);
@@ -36,106 +42,108 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     return;
   }
 
-  const model = await handleDataCollectRequest({ value, headers })
+  const model = await handleDataCollectRequest({ value, headers });
 
-  // Get the number of Kafka partitions from environment variables, defaulting to 1
   const partitions = parseInt(process.env.KAFKA_NUM_PARTITIONS, 10) || 1;
-  // Calculate the total number of tasks, ensuring it defaults to 1 if zero
   const total = Math.max(1 / partitions, 1);
-
   const id = model.id;
   const url = model.service.parameters.url;
-  const fetchStartTime = Date.now();
+
+  // Start performance measurement
+  const fetchStartTime = new Date();
 
   try {
     const { parsedData, format } = await fetchDataAndParse(url);
 
-    const fetchEndTime = Date.now();
+    // End performance measurement
+    const fetchEndTime = new Date();
     const processingDuration = fetchEndTime - fetchStartTime;
 
     const sourceFile = "sources.csv";
-    const sourceLog = `${id},${url},${format},${fetchStartTime},${fetchEndTime},${processingDuration}\n`;
+    const sourceLog = `${id},${url},${format},${new Date(fetchStartTime).toISOString()},${new Date(fetchEndTime).toISOString()},${processingDuration}\n`;
     const logPath = path.join(__dirname, "../../files/logs", sourceFile);
 
+    // Save the log with appended data
     await saveSourceLog(logPath, sourceLog, true);
 
-    // Increment the task processed counter
     global.tasksProcessed++;
+    const totalTasks = total || 1;
 
-    // If totalTasks is 0, set it to 1 (to avoid division by zero)
-    let totalTasks = total || 1;
-
-    // Calculate progress and estimate remaining time using the helper function
+    // Calculate progress and log periodically
     const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = calculateProgress(
       global.tasksProcessed,
       totalTasks,
       global.startTime
     );
 
-    // Log the progress
     logger.notice(`[dcs] [${id}] ${headers.correlationId} url: ${url}`);
     if (global.tasksProcessed % 10 === 0 || global.tasksProcessed === totalTasks) {
       logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
     }
 
-    await sendDataCollectResponseRequest(
-      {
-        value: {
-          id,
-          data: parsedData,
-          timestamp: helper.getCurrentTimestamp(),
-          summary: {
-            source: url,
-            itemCount: parsedData.length || 1, // Ensure itemCount is always a valid number
-            dataFormat: format, // Dynamically set dataFormat
-            processingTime: processingDuration
-          }
-        },
-        headers
-      }
-    );
+    // Prepare measurement data
+    const measurementTime = helper.getCurrentTimestamp();
+    model.service.measurements = {
+      service_id: model.service.service_id,
+      metric_id: 0,
+      measurement_time: measurementTime,
+      measurement_start_time: fetchStartTime.toISOString(),
+      measurement_end_time: fetchEndTime.toISOString(),
+      metric_type: "performance",
+      metric_value: processingDuration
+    };
 
-    await sendDataCollectStatusRequest(
-      {
-        value: {
-          id,
-          status: "completed",
-          message: "Data collection is completed successfully.",
-          timestamp: helper.getCurrentTimestamp(),
-        },
-        headers
-      }
-    );
+    const content = {
+      content_type: format,
+      content_length: parsedData.length || 1,
+      data: [parsedData]
+    };
+
+    const response = {
+      id: model.id,
+      service: model.service,
+      content:content
+    };
+
+    // Send the successful response
+    await sendDataCollectResponseRequest({ value: response, headers }); 
+
+    // // Send status update indicating completion
+    // await sendDataCollectStatusRequest({
+    //   value: {
+    //     id,
+    //     status: "completed",
+    //     message: "Data collection is completed successfully.",
+    //     timestamp: helper.getCurrentTimestamp(),
+    //   },
+    //   headers
+    // });
 
   } catch (error) {
-    if (error instanceof Error) {
-      logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${error.name}`);
-    } else {
-      logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${typeof error}`);
-    }
+    // Handle errors and send failure response
+    const errorMessage = error instanceof Error ? error.message : `${error}`;
 
-    await sendDataCollectErrorRequest({
-      value: {
-        id,
-        errorCode: errorCodes.DATA_FETCH_ERROR.code,
-        errorMessage: `${error.message}`,
-        timestamp: helper.getCurrentTimestamp(),
-      },
-      headers
-    }
-    );
+    logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${error.name || "Unknown Error"}`, error);
 
-    await sendDataCollectStatusRequest(
-      {
-        value: {
-          id,
-          status: "failed",
-          message: "Data collection has failed.",
-          timestamp: helper.getCurrentTimestamp(),
-        },
-        headers
-      }
-    );
+    // await sendDataCollectErrorRequest({
+    //   value: {
+    //     id,
+    //     errorCode: errorCodes.DATA_FETCH_ERROR.code,
+    //     errorMessage: errorMessage,
+    //     timestamp: helper.getCurrentTimestamp(),
+    //   },
+    //   headers
+    // });
+
+    // await sendDataCollectStatusRequest({
+    //   value: {
+    //     id,
+    //     status: "failed",
+    //     message: "Data collection has failed.",
+    //     timestamp: helper.getCurrentTimestamp(),
+    //   },
+    //   headers
+    // });
 
     throw error;
   }
