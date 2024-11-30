@@ -66,8 +66,9 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     // Save the log with appended data
     await saveSourceLog(logPath, sourceLog, true);
 
+    // Global task
     global.tasksProcessed++;
-    const totalTasks = total || 1;
+    let totalTasks = total || 1;
 
     // Calculate progress and log periodically
     const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = calculateProgress(
@@ -102,11 +103,11 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     const response = {
       id: model.id,
       service: model.service,
-      content:content
+      content: content
     };
 
     // Send the successful response
-    await sendDataCollectResponseRequest({ value: response, headers }); 
+    await sendDataCollectResponseRequest({ value: response, headers });
 
     // // Send status update indicating completion
     // await sendDataCollectStatusRequest({
@@ -118,7 +119,6 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   },
     //   headers
     // });
-
   } catch (error) {
     // Handle errors and send failure response
     const errorMessage = error instanceof Error ? error.message : `${error}`;
@@ -145,8 +145,9 @@ async function eventDataCollectRequest({ value, headers } = {}) {
     //   headers
     // });
 
-    throw error;
+    throw error; // Hata tekrar fırlatılır
   }
+
 }
 
 module.exports = { eventDataCollectRequest };
