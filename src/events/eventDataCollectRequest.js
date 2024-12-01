@@ -36,13 +36,14 @@ async function saveSourceLog(filePath, logData, append = false) {
  * @param {string} processedData.value.id - The unique task identifier.
  * @param {Object} processedData.headers.correlationId - The correlation ID for tracking.
  */
-async function eventDataCollectRequest({ value, headers } = {}) {
+async function eventDataCollectRequest(pair) {
+  const { key, value, headers } = pair
   if (!value) {
     logger.error("No value found in the message");
     return;
   }
 
-  const model = await handleDataCollectRequest({ value, headers });
+  const model = await handleDataCollectRequest({ key, value, headers });
 
   const partitions = parseInt(process.env.KAFKA_NUM_PARTITIONS, 10) || 1;
   const total = Math.max(1 / partitions, 1);
