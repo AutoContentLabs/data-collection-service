@@ -10,6 +10,10 @@ const {
 } = require('@auto-content-labs/messaging');
 const { eventDataCollectRequest } = require("../events/eventDataCollectRequest");
 
+const async = require('async');
+// Get the concurrent parallel limit from the environment variable, default to 5 if not set
+const MAX_PARALLEL_TASKS = parseInt(process.env.MAX_PARALLEL_TASKS) || 5;
+
 global.tasksProcessed = 0;
 global.startTime = null;
 
@@ -24,8 +28,21 @@ async function start() {
     // The event we will listen to.
     const eventName = events.dataCollectRequest;
 
+    // Queue with a concurrency limit (5 parallel tasks)
+    const queue = async.queue(async (message, callback) => {
+      try {
+        await eventDataCollectRequest(message); // Process the event
+      } catch (error) {
+        logger.error("Error processing event", error);
+      } finally {
+        callback(); // Ensure the queue progresses
+      }
+    }, MAX_PARALLEL_TASKS); // Limit to 5 concurrent tasks
+
     // Listen to incoming data collection requests
-    await listenMessage(eventName, eventDataCollectRequest);
+    await listenMessage(eventName, (message) => {
+      queue.push(message); // Add message to the queue for processing
+    });
 
     logger.info(`Listener started on event: ${eventName}`);
 
