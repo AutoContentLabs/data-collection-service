@@ -110,8 +110,10 @@ async function eventDataCollectRequest(pair) {
       content: content
     };
 
+    // Send the data collection request   
+    const transferHeaders = { correlationId: headers.correlationId, trackId: headers.trackId } // track before request
     // Send the successful response
-    await sendDataCollectResponseRequest({ key, value: response, headers });
+    await sendDataCollectResponseRequest({ value: response, headers: transferHeaders });
 
     // // Send status update indicating completion
     // await sendDataCollectStatusRequest({
