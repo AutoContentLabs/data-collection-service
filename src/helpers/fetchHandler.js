@@ -61,10 +61,11 @@ async function fetchDataAndParse(url) {
   const formattedUrl = formatURL(url); // Format URL
 
   let data;
+  const FETCHER_TIMEOUT = parseInt(process.env.FETCHER_TIMEOUT) || 2000;
   try {
     // Attempt to fetch the data
     data = await fetcher(formattedUrl, {
-      timeout: 1000,    // Increased timeout to handle slower connections
+      timeout: FETCHER_TIMEOUT,    // Increased timeout to handle slower connections
       maxRetries: 1,    // Allow for retries on failure
       retryDelay: 300,  // Retry delay in ms
       log: false        // Disable internal logging to avoid clutter
