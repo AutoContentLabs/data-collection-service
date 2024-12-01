@@ -80,7 +80,9 @@ async function eventDataCollectRequest(pair) {
 
     logger.notice(`[dcs] [${id}] ${headers.correlationId} url: ${url}`);
     if (global.tasksProcessed % 10 === 0 || global.tasksProcessed === totalTasks) {
-      logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
+      // The actual calculation is not correct!
+      // we need to fix
+      // logger.notice(`[dcs] [✨] [${progressPercentage}%] [${formattedElapsedTime}] [${formattedEstimatedTimeRemaining}]`);
     }
 
     // Prepare measurement data
@@ -101,23 +103,11 @@ async function eventDataCollectRequest(pair) {
       data: [parsedData]
     };
 
-    const exampleData = {
-      "title": "GitHub · Build and ship software on a single, collaborative platform · GitHubTwitchTikTok",
-      "headings": [
-        "Search code, repositories, users, issues, pull requests...",
-      ],
-      "paragraphs": [
-        "We read every piece of feedback, and take your input very seriously.",
-      ]
-    }
+
     const response = {
       id: model.id,
       service: model.service,
-      content: {
-        content_type: "json",
-        content_length: 1,
-        data: [exampleData]
-      }
+      content: content
     };
 
     // Send the successful response
@@ -159,7 +149,7 @@ async function eventDataCollectRequest(pair) {
     //   headers
     // });
 
-    throw error; // Hata tekrar fırlatılır
+    throw error; // Error message sent for re-reading.
   }
 
 }
