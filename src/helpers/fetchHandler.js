@@ -1,4 +1,12 @@
-const { fetcher, formatURL } = require("@auto-content-labs/fetcher");
+const {
+  fetcher,
+  formatURL,
+  FetcherError,
+  TimeoutError,
+  NetworkError,
+  HttpError,
+  CORSForbiddenError,
+} = require("@auto-content-labs/fetcher");
 const { parseData } = require("./parser");
 
 /**
@@ -12,13 +20,6 @@ class FetchError extends Error {
     this.timestamp = new Date().toISOString();
   }
 
-  logError() {
-    // Custom logging for fetch errors
-    console.error(`[${this.timestamp}] FetchError: ${this.message}`);
-    if (this.url) {
-      console.error(`URL: ${this.url}`);
-    }
-  }
 }
 
 /**
@@ -32,13 +33,6 @@ class ParseError extends Error {
     this.timestamp = new Date().toISOString();
   }
 
-  logError() {
-    // Custom logging for parse errors
-    console.error(`[${this.timestamp}] ParseError: ${this.message}`);
-    if (this.data) {
-      console.error("Data: ", this.data);
-    }
-  }
 }
 
 /**
@@ -76,7 +70,25 @@ async function fetchDataAndParse(url) {
       log: false        // Disable internal logging to avoid clutter
     });
   } catch (fetchError) {
-    const error = new FetchError(`Failed to fetch data from URL: ${fetchError.message}`, formattedUrl);
+    // Handle different fetch errors based on their type
+    if (fetchError instanceof TimeoutError) {
+      const error = new FetchError(`Timeout Error: ${fetchError.message}`, formattedUrl);
+      throw error;
+    }
+    if (fetchError instanceof NetworkError) {
+      const error = new FetchError(`Network Error: ${fetchError.message}`, formattedUrl);
+      throw error;
+    }
+    if (fetchError instanceof HttpError) {
+      const error = new FetchError(`HTTP Error ${fetchError.status}: ${fetchError.message}`, formattedUrl);
+      throw error;
+    }
+    if (fetchError instanceof CORSForbiddenError) {
+      const error = new FetchError(`CORS Error: ${fetchError.message}`, formattedUrl);
+      throw error;
+    }
+    // Generic error handling if it's not a known error type
+    const error = new FetchError(`${fetchError.message}`, formattedUrl);
     throw error;
   }
 
@@ -89,7 +101,7 @@ async function fetchDataAndParse(url) {
     // Attempt to parse the data
     return await parseData(data);
   } catch (parseError) {
-    const error = new ParseError(`Failed to parse fetched data: ${parseError.message}`, data);
+    const error = new ParseError(`${parseError.message}`, data);
     throw error;
   }
 }
