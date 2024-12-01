@@ -111,9 +111,9 @@ async function eventDataCollectRequest(pair) {
     };
 
     // Send the data collection request   
-    const transferHeaders = { correlationId: headers.correlationId, trackId: headers.trackId } // track before request
+    const providedHeaders = { correlationId: headers.correlationId, trackId: headers.trackId } // track before request
     // Send the successful response
-    await sendDataCollectResponseRequest({ value: response, headers: transferHeaders });
+    await sendDataCollectResponseRequest({ value: response, headers: providedHeaders });
 
     // // Send status update indicating completion
     // await sendDataCollectStatusRequest({
@@ -130,7 +130,8 @@ async function eventDataCollectRequest(pair) {
     const errorMessage = error instanceof Error ? error.message : `${error}`;
 
     logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${error.name || "Unknown Error"}`, error);
-
+    // Send the data collection request   
+    const providedHeaders = { correlationId: headers.correlationId, trackId: headers.trackId } // track before request
     // await sendDataCollectErrorRequest({
     //   value: {
     //     id,
