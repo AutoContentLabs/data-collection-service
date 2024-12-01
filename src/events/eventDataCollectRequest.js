@@ -29,12 +29,12 @@ async function saveSourceLog(filePath, logData, append = false) {
 
 /**
  * Handles data collection request events.
- * @param {Object} processedData - The processed data source object.
- * @param {Object} processedData.value - The incoming model data.
- * @param {Object} processedData.headers - The request headers.
- * @param {string} processedData.value.url - The URL to fetch data from.
- * @param {string} processedData.value.id - The unique task identifier.
- * @param {Object} processedData.headers.correlationId - The correlation ID for tracking.
+ * @param {Object} pair - The processed data source object.
+ * @param {Object} pair.value - The incoming model data.
+ * @param {Object} pair.headers - The request headers.
+ * @param {string} pair.value.url - The URL to fetch data from.
+ * @param {string} pair.value.id - The unique task identifier.
+ * @param {Object} pair.headers.correlationId - The correlation ID for tracking.
  */
 async function eventDataCollectRequest(pair) {
   const { key, value, headers } = pair
