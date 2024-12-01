@@ -111,7 +111,7 @@ async function eventDataCollectRequest(pair) {
     };
 
     // Send the successful response
-    await sendDataCollectResponseRequest({ value: response });
+    await sendDataCollectResponseRequest({ key, value: response, headers });
 
     // // Send status update indicating completion
     // await sendDataCollectStatusRequest({
