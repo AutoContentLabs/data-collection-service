@@ -111,7 +111,7 @@ async function eventDataCollectRequest(pair) {
     };
 
     // Send the data collection request   
-    const providedHeaders = { correlationId: headers.correlationId, trackId: headers.trackId } // track before request
+    const providedHeaders = { correlationId: headers.correlationId, traceId: headers.traceId } // track before request
     // Send the successful response
     await sendDataCollectResponseRequest({ value: response, headers: providedHeaders });
 
@@ -131,7 +131,7 @@ async function eventDataCollectRequest(pair) {
 
     logger.error(`[dcs] [${id}] ${headers.correlationId} url: ${url} - ${error.name || "Unknown Error"}`, error);
     // Send the data collection request   
-    const providedHeaders = { correlationId: headers.correlationId, trackId: headers.trackId } // track before request
+    const providedHeaders = { correlationId: headers.correlationId, traceId: headers.traceId } // track before request
     // await sendDataCollectErrorRequest({
     //   value: {
     //     id,
