@@ -15,7 +15,7 @@
   "dependencies": {
     "@auto-content-labs/fetcher": "github:AutoContentLabs/fetcher",
     "@auto-content-labs/messaging": "github:AutoContentLabs/messaging",
-    "@dotenvx/dotenvx": "^1.22.0",
+    "@dotenvx/dotenvx": "^1.26.0",
     "async": "^3.2.6",
     "cheerio": "^1.0.0",
     "winston": "^3.17.0",

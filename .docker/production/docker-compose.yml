@@ -85,11 +85,11 @@ services:
         max-size: "10m"
         max-file: "3"
     deploy:
-      replicas: 1
+      replicas: 11
       resources:
         limits:
-          cpus: "2.0"
-          memory: "2g"
+          cpus: "1.0"
+          memory: "1g"
         reservations:
           cpus: "0.5"
           memory: "1g"
