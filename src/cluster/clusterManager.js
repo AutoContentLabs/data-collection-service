@@ -1,6 +1,7 @@
+const { logger } = require('@auto-content-labs/messaging-utils');
+
 const cluster = require('cluster');
 const numCPUs = require('os').cpus().length;
-const { logger } = require('@auto-content-labs/messaging');
 const dataCollector = require('../services/dataCollector');
 
 function start(withCluster = process.env.NODE_ENV !== 'production') {

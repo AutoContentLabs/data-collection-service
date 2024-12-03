@@ -1,3 +1,6 @@
+
+const { parser } = require("@auto-content-labs/messaging-utils");
+
 const {
   fetcher,
   formatURL,
@@ -7,7 +10,7 @@ const {
   HttpError,
   CORSForbiddenError,
 } = require("@auto-content-labs/fetcher");
-const { parseData } = require("./parser");
+
 
 /**
  * Custom error class: Fetch operation errors
@@ -100,7 +103,7 @@ async function fetchDataAndParse(url) {
 
   try {
     // Attempt to parse the data
-    return await parseData(data);
+    return await parser.parseData(data);
   } catch (parseError) {
     const error = new ParseError(`${parseError.message}`, data);
     throw error;

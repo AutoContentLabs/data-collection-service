@@ -1,15 +1,16 @@
-const path = require("path");
+
+const { logger, helper, fileWriter, progress } = require('@auto-content-labs/messaging-utils');
+
 const {
-  logger,
-  helper,
-  fileWriter,
-  progress,
   handleDataCollectRequest,
   sendDataCollectResponseRequest,
   sendDataCollectStatusRequest,
   sendDataCollectErrorRequest
 } = require("@auto-content-labs/messaging");
+
 const { fetchDataAndParse } = require("../helpers/fetchHandler");
+
+const path = require("path");
 
 /**
  * Saves the source log to the specified file.
