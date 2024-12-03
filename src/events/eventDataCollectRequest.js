@@ -3,13 +3,13 @@ const {
   logger,
   helper,
   fileWriter,
+  progress,
   handleDataCollectRequest,
   sendDataCollectResponseRequest,
   sendDataCollectStatusRequest,
   sendDataCollectErrorRequest
 } = require("@auto-content-labs/messaging");
 const { fetchDataAndParse } = require("../helpers/fetchHandler");
-const { calculateProgress } = require("../helpers/progress");
 
 /**
  * Saves the source log to the specified file.
@@ -62,7 +62,7 @@ async function eventDataCollectRequest(pair) {
 
     const sourceFile = "sources.csv";
     const sourceLog = `${id},${url},${format},${new Date(fetchStartTime).toISOString()},${new Date(fetchEndTime).toISOString()},${processingDuration}\n`;
-    const logPath = path.join(__dirname, "../../files/logs", sourceFile);
+    const logPath = path.join(__dirname, "../../files/sources", sourceFile);
 
     // Save the log with appended data
     await saveSourceLog(logPath, sourceLog, true);
@@ -72,7 +72,7 @@ async function eventDataCollectRequest(pair) {
     let totalTasks = total || 1;
 
     // Calculate progress and log periodically
-    const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = calculateProgress(
+    const { progressPercentage, formattedElapsedTime, formattedEstimatedTimeRemaining } = progress.calculateProgress(
       global.tasksProcessed,
       totalTasks,
       global.startTime
