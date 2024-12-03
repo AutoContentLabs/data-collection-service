@@ -15,11 +15,10 @@ services:
       - files_dc_kafka:/workspaces/app/files
     restart: always
     command: "npm start"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://logstash:5044"
     deploy:
       replicas: ${DEPLOY_REPLICAS}
       resources:
@@ -47,11 +46,10 @@ services:
       - files_dc_rabbitmq:/workspaces/app/files
     restart: always
     command: "npm start"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://logstash:5044"
     deploy:
       replicas: ${DEPLOY_REPLICAS}
       resources:
@@ -79,11 +77,10 @@ services:
       - files_dc_redis:/workspaces/app/files
     restart: always
     command: "npm start"
-    logging:
-      driver: "json-file"
-      options:
-        max-size: "10m"
-        max-file: "3"
+    # logging:
+    #   driver: "gelf"
+    #   options:
+    #     gelf-address: "udp://logstash:5044"
     deploy:
       replicas: ${DEPLOY_REPLICAS}
       resources:
